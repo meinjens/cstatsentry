@@ -15,7 +15,6 @@
 - 📊 **Real-time Dashboard** - Live updates and comprehensive analytics
 - ⚡ **Background Processing** - Celery-powered asynchronous job system
 - 🔄 **Auto-Sync** - Periodic match synchronization every 30 minutes
-- 🐳 **Production Ready** - Docker Swarm deployment with high availability
 
 ## 🏗️ Architecture
 
@@ -52,19 +51,6 @@ docker-compose up -d
 - API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
-### Production Deployment (Docker Swarm)
-
-```bash
-# Configure environment
-cp .env.production.example .env.production
-nano .env.production
-
-# Deploy to swarm
-./scripts/deploy.sh deploy --build
-```
-
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed production setup.
-
 ## 🔧 Tech Stack
 
 | Component | Technology | Purpose |
@@ -73,7 +59,6 @@ See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed production setup.
 | **Backend** | FastAPI + SQLAlchemy + PostgreSQL | High-performance API |
 | **Jobs** | Celery + Redis | Background processing |
 | **Auth** | Steam OpenID + JWT | Secure authentication |
-| **Deploy** | Docker + Docker Swarm | Container orchestration |
 | **CI/CD** | GitHub Actions | Automated testing & deployment |
 
 ## 📊 Detection System
@@ -115,7 +100,7 @@ cstatsentry/
 │       ├── services/        # API integration
 │       └── types/           # TypeScript definitions
 ├── 📚 docs/                 # Documentation
-├── 🛠️ scripts/              # Deployment & utility scripts
+├── 🛠️ scripts/              # Utility scripts
 ├── 🐳 .github/              # GitHub Actions workflows
 └── 📋 docker-compose*.yml   # Docker configurations
 ```
