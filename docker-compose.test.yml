@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_cstatsentry
+      POSTGRES_USER: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+
+  redis-test:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6380:6379"
+
+  backend-test:
+    build:
+      context: ./backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/test_cstatsentry
+      - REDIS_URL=redis://redis-test:6379/0
+      - CELERY_BROKER_URL=redis://redis-test:6379/1
+      - STEAM_API_KEY=test_key
+      - SECRET_KEY=test_secret_key
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    command: python -m pytest tests/ -v --cov=app --cov-report=xml
+    volumes:
+      - ./backend:/app
