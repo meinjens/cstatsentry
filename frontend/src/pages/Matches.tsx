@@ -1,7 +1,7 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { matchesAPI } from '../services/api'
-import { Target, Clock, Users, RefreshCw } from 'lucide-react'
+import { Target, Clock, RefreshCw } from 'lucide-react'
 
 const Matches: React.FC = () => {
   const { data: matchesData, isLoading } = useQuery({

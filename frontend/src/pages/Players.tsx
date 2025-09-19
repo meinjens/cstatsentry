@@ -12,17 +12,6 @@ const Players: React.FC = () => {
     queryFn: () => playersAPI.getSuspiciousPlayers(minSuspicionScore, 50)
   })
 
-  const getSuspicionColor = (score: number) => {
-    if (score >= 80) return 'text-red-600 bg-red-50'
-    if (score >= 60) return 'text-yellow-600 bg-yellow-50'
-    return 'text-green-600 bg-green-50'
-  }
-
-  const getSuspicionLabel = (score: number) => {
-    if (score >= 80) return 'High Risk'
-    if (score >= 60) return 'Suspicious'
-    return 'Low Risk'
-  }
 
   return (
     <div className="space-y-6">

@@ -7,8 +7,7 @@ import {
   Target,
   Settings,
   LogOut,
-  Shield,
-  Activity
+  Shield
 } from 'lucide-react'
 import { clsx } from 'clsx'
 

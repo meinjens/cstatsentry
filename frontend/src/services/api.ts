@@ -6,7 +6,10 @@ import type {
   PlayerAnalysis,
   Match,
   AuthResponse,
-  DashboardSummary
+  DashboardSummary,
+  MonthlyMatchData,
+  DetectionTrend,
+  FlagStatistic
 } from '../types'
 
 const api = axios.create({
@@ -148,7 +151,7 @@ export const dashboardAPI = {
 
   getRecentActivity: async (): Promise<{
     recent_analyses: PlayerAnalysis[]
-    new_flags: any[]
+    new_flags: FlagStatistic[]
     updated_players: Player[]
   }> => {
     const response = await api.get('/dashboard/recent')
@@ -156,10 +159,10 @@ export const dashboardAPI = {
   },
 
   getStatistics: async (): Promise<{
-    matches_by_month: any[]
+    matches_by_month: MonthlyMatchData[]
     suspicion_score_distribution: Record<string, number>
-    detection_trends: any[]
-    most_common_flags: any[]
+    detection_trends: DetectionTrend[]
+    most_common_flags: FlagStatistic[]
   }> => {
     const response = await api.get('/dashboard/statistics')
     return response.data

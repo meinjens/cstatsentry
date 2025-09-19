@@ -6,7 +6,6 @@ import {
   Shield,
   Clock,
   MapPin,
-  Users,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -22,7 +21,7 @@ const PlayerDetail: React.FC = () => {
     enabled: !!steamId
   })
 
-  const { data: analysisHistory } = useQuery({
+  useQuery({
     queryKey: ['player-analysis', steamId],
     queryFn: () => playersAPI.getPlayerAnalysisHistory(steamId!, 10),
     enabled: !!steamId
@@ -206,7 +205,7 @@ const PlayerDetail: React.FC = () => {
                   <div>
                     <span className="text-sm font-medium text-gray-500 block mb-2">Detection Flags</span>
                     <div className="space-y-2">
-                      {Object.entries(player.latest_analysis.flags || {}).map(([key, flag]: [string, any]) => (
+                      {Object.entries(player.latest_analysis.flags || {}).map(([key, flag]) => (
                         <div key={key} className={`p-3 rounded-md ${
                           flag.severity === 'high' ? 'bg-red-50 border border-red-200' :
                           flag.severity === 'medium' ? 'bg-yellow-50 border border-yellow-200' :

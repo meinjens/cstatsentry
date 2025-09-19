@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { usersAPI } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
-import { Save, User, Shield, Bell, Database } from 'lucide-react'
+import { Save, User, Shield, Database } from 'lucide-react'
 
 const Settings: React.FC = () => {
   const { user, refreshUser } = useAuth()

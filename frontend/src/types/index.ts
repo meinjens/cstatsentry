@@ -38,12 +38,19 @@ export interface PlayerBan {
   updated_at: string
 }
 
+export interface AnalysisFlag {
+  severity: 'low' | 'medium' | 'high'
+  description: string
+  confidence: number
+  detected_at: string
+}
+
 export interface PlayerAnalysis {
   analysis_id: number
   steam_id: string
   analyzed_by: number
   suspicion_score: number
-  flags: Record<string, any>
+  flags: Record<string, AnalysisFlag>
   confidence_level: number
   analysis_version: string
   notes: string | null
@@ -53,6 +60,23 @@ export interface PlayerAnalysis {
 export interface PlayerWithAnalysis extends Player {
   latest_analysis: PlayerAnalysis | null
   ban_info: PlayerBan | null
+}
+
+export interface MonthlyMatchData {
+  month: string
+  match_count: number
+}
+
+export interface DetectionTrend {
+  date: string
+  detection_count: number
+  detection_type: string
+}
+
+export interface FlagStatistic {
+  flag_type: string
+  count: number
+  percentage: number
 }
 
 export interface Match {
