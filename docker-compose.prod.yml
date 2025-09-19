@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-statsentry}
+      POSTGRES_USER: ${POSTGRES_USER:-statsentry}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-statsentry_prod_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-statsentry}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      replicas: 1
+
+  api:
+    image: statsentry/api:latest
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-https://statsentry.your-domain.com}
+      - DEBUG=false
+    depends_on:
+      - db
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  celery-worker:
+    image: statsentry/api:latest
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - db
+      - redis
+    command: celery -A app.core.celery worker --loglevel=info --concurrency=4
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  celery-beat:
+    image: statsentry/api:latest
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - db
+      - redis
+    command: celery -A app.core.celery beat --loglevel=info
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  frontend:
+    image: statsentry/frontend:latest
+    environment:
+      - VITE_API_URL=${FRONTEND_URL:-https://statsentry.your-domain.com}/api/v1
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+      - frontend
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    external: true
+    name: statsentry-network
