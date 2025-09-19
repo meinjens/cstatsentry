@@ -2,7 +2,7 @@
 
 **CS2 Anti-Cheat Detection System** - Automated teammate analysis for suspicious player identification.
 
-[![CI/CD Pipeline](https://github.com/yourusername/cstatsentry/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/yourusername/cstatsentry/actions)
+[![CI/CD Pipeline](https://github.com/meinjens/cstatsentry/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/meinjens/cstatsentry/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
 [![Swarm](https://img.shields.io/badge/Docker%20Swarm-Supported-green)](https://docs.docker.com/engine/swarm/)
@@ -37,7 +37,7 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/cstatsentry.git
+git clone https://github.com/meinjens/cstatsentry.git
 cd cstatsentry
 
 # Start with Docker Compose
@@ -180,8 +180,8 @@ StatSentry is designed for educational and analytical purposes. It only accesses
 ## 🆘 Support
 
 - 📖 [Documentation](docs/)
-- 🐛 [Report Issues](https://github.com/yourusername/cstatsentry/issues)
-- 💬 [Discussions](https://github.com/yourusername/cstatsentry/discussions)
+- 🐛 [Report Issues](https://github.com/meinjens/cstatsentry/issues)
+- 💬 [Discussions](https://github.com/meinjens/cstatsentry/discussions)
 
 ---
 
