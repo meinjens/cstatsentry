@@ -43,9 +43,16 @@ cd ..
 
 # Install frontend dependencies if needed
 if [ ! -d "frontend/node_modules" ]; then
-    echo "📦 Installing Node.js dependencies..."
+    echo "📦 Installing Node.js dependencies with pnpm..."
     cd frontend
-    npm install
+
+    # Check if pnpm is installed
+    if ! command -v pnpm &> /dev/null; then
+        echo "Installing pnpm..."
+        npm install -g pnpm
+    fi
+
+    pnpm install
     cd ..
 fi
 
@@ -62,7 +69,7 @@ echo "3. Start Celery beat (new terminal):"
 echo "   cd backend && source venv/bin/activate && celery -A app.core.celery beat --loglevel=info"
 echo ""
 echo "4. Start the frontend (new terminal):"
-echo "   cd frontend && npm run dev"
+echo "   cd frontend && pnpm run dev"
 echo ""
 echo "🌐 Access points:"
 echo "   Frontend: http://localhost:3000"

@@ -61,6 +61,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Package manager artifacts
+package-lock.json
+yarn.lock
+
 # React build
 frontend/build/
 frontend/dist/

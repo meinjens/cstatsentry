@@ -69,7 +69,7 @@ See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed production setup.
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Frontend** | React 18 + TypeScript + Tailwind CSS | Modern, responsive UI |
+| **Frontend** | React 18 + TypeScript + Tailwind CSS + pnpm | Modern, responsive UI |
 | **Backend** | FastAPI + SQLAlchemy + PostgreSQL | High-performance API |
 | **Jobs** | Celery + Redis | Background processing |
 | **Auth** | Steam OpenID + JWT | Secure authentication |
@@ -149,7 +149,7 @@ See [SETUP.md](docs/SETUP.md) for complete configuration guide.
 cd backend && pytest
 
 # Frontend tests
-cd frontend && npm test
+cd frontend && pnpm test
 
 # Integration tests
 docker-compose -f docker-compose.test.yml up --abort-on-container-exit

@@ -99,15 +99,20 @@ REDIS_URL=redis://localhost:6379/0
 
 ### Frontend Setup
 
-1. **Install Node.js dependencies:**
+1. **Install pnpm (if not already installed):**
    ```bash
-   cd frontend
-   npm install
+   npm install -g pnpm
    ```
 
-2. **Start development server:**
+2. **Install Node.js dependencies:**
    ```bash
-   npm run dev
+   cd frontend
+   pnpm install
+   ```
+
+3. **Start development server:**
+   ```bash
+   pnpm run dev
    ```
 
 3. **Access the application:**
@@ -151,7 +156,7 @@ pytest
 ### Frontend Tests
 ```bash
 cd frontend
-npm run test
+pnpm run test
 ```
 
 ## Production Deployment

@@ -7,12 +7,14 @@ import Players from './pages/Players'
 import PlayerDetail from './pages/PlayerDetail'
 import Matches from './pages/Matches'
 import Settings from './pages/Settings'
+import Test from './pages/Test'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/test" element={<Test />} />
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Layout />}>
           <Route index element={
