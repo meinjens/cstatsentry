@@ -33,6 +33,8 @@ venv/
 ENV/
 env/
 .venv/
+ci_test_env/
+*_env/
 
 # IDE
 .vscode/
