@@ -7,7 +7,7 @@ echo "🚀 StatSentry Docker Swarm Deployment Script"
 # Configuration
 REGISTRY=${REGISTRY:-"your-registry.com"}
 VERSION=${VERSION:-"latest"}
-STACK_NAME=${STACK_NAME:-"statsentry"}
+STACK_NAME=${STACK_NAME:-"cstatsentry"}
 
 # Build and push images
 build_and_push() {

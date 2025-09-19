@@ -33,7 +33,7 @@ services:
       replicas: 1
 
   api:
-    image: statsentry/api:latest
+    image: cstatsentry/api:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
@@ -59,7 +59,7 @@ services:
         condition: on-failure
 
   celery-worker:
-    image: statsentry/api:latest
+    image: cstatsentry/api:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
@@ -76,7 +76,7 @@ services:
         condition: on-failure
 
   celery-beat:
-    image: statsentry/api:latest
+    image: cstatsentry/api:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
@@ -93,9 +93,9 @@ services:
         condition: on-failure
 
   frontend:
-    image: statsentry/frontend:latest
+    image: cstatsentry/frontend:latest
     environment:
-      - VITE_API_URL=${FRONTEND_URL:-https://statsentry.your-domain.com}/api/v1
+      - VITE_API_URL=${FRONTEND_URL:-https://cstatsentry.your-domain.com}/api/v1
     deploy:
       replicas: 2
       update_config:

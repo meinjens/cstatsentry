@@ -39,7 +39,7 @@ const Layout: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center px-6 py-4 border-b">
             <Shield className="h-8 w-8 text-primary-600 mr-3" />
-            <span className="text-xl font-bold text-gray-900">StatSentry</span>
+            <span className="text-xl font-bold text-gray-900">CS StatSentry</span>
           </div>
 
           {/* Navigation */}

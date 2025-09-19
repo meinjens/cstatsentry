@@ -64,7 +64,7 @@ const Login: React.FC = () => {
           <div className="flex justify-center items-center mb-4">
             <Shield className="h-16 w-16 text-primary-600" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">StatSentry</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">CS StatSentry</h1>
           <p className="text-gray-600 text-lg">
             CS2 Anti-Cheat Detection System
           </p>
