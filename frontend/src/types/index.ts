@@ -75,6 +75,8 @@ export interface DetectionTrend {
 
 export interface FlagStatistic {
   flag_type: string
+  type: string
+  description: string
   count: number
   percentage: number
 }

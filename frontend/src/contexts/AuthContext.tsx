@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initAuth()
   }, [])
 
-  const login = (steamId: string, token: string, userData: User) => {
+  const login = (_steamId: string, token: string, userData: User) => {
     localStorage.setItem('access_token', token)
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
