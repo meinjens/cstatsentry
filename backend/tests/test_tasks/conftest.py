@@ -88,13 +88,16 @@ def test_user_for_tasks(db_session):
 
 @pytest.fixture
 def test_player_for_tasks(db_session):
+    from datetime import datetime
     player_data = {
         "steam_id": "76561198987654321",
         "current_name": "TestPlayer",
         "avatar_url": "https://example.com/avatar.jpg",
         "visibility_state": 3,
         "total_games_owned": 10,
-        "cs2_hours": 500
+        "cs2_hours": 500,
+        "account_created": datetime.utcnow(),
+        "profile_updated": datetime.utcnow()
     }
     return create_player(db_session, player_data)
 
