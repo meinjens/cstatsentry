@@ -110,13 +110,24 @@ class SteamDataExtractor:
     @staticmethod
     def extract_player_data(player_summary: Dict) -> Dict[str, Any]:
         """Extract relevant player data from Steam API response"""
+        from datetime import datetime
+
+        # Convert timestamps to datetime objects
+        account_created = player_summary.get("timecreated")
+        if account_created:
+            account_created = datetime.fromtimestamp(account_created)
+
+        last_logoff = player_summary.get("lastlogoff")
+        if last_logoff:
+            last_logoff = datetime.fromtimestamp(last_logoff)
+
         return {
             "steam_id": player_summary.get("steamid"),
             "current_name": player_summary.get("personaname"),
             "avatar_url": player_summary.get("avatarfull"),
             "profile_url": player_summary.get("profileurl"),
-            "account_created": player_summary.get("timecreated"),
-            "last_logoff": player_summary.get("lastlogoff"),
+            "account_created": account_created,
+            "last_logoff": last_logoff,
             "profile_state": player_summary.get("profilestate"),
             "visibility_state": player_summary.get("communityvisibilitystate"),
             "country_code": player_summary.get("loccountrycode")

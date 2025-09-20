@@ -32,37 +32,48 @@ def analyze_player_profile(self, steam_id: str, force_update: bool = False, anal
 
         if needs_update:
             # Fetch fresh data from Steam API
-            async with steam_api:
-                # Get player summary
-                summary_data = await steam_api.get_player_summaries([steam_id])
-                if summary_data.get("response", {}).get("players"):
-                    player_info = summary_data["response"]["players"][0]
-                    extracted_data = SteamDataExtractor.extract_player_data(player_info)
+            import asyncio
 
-                    # Update player profile
-                    update_data = {**extracted_data, "profile_updated": datetime.utcnow()}
-                    update_player(db, player, update_data)
+            async def fetch_steam_data():
+                async with steam_api:
+                    # Get player summary
+                    summary_data = await steam_api.get_player_summaries([steam_id])
 
-                # Get ban information
-                ban_data = await steam_api.get_player_bans([steam_id])
-                if ban_data.get("players"):
-                    ban_info = ban_data["players"][0]
-                    extracted_ban_data = SteamDataExtractor.extract_ban_data(ban_info)
-                    create_or_update_player_ban(db, extracted_ban_data)
+                    # Get ban information
+                    ban_data = await steam_api.get_player_bans([steam_id])
 
-                # Get owned games for playtime analysis
-                try:
-                    games_data = await steam_api.get_owned_games(steam_id)
-                    cs2_hours = SteamDataExtractor.extract_cs2_hours(games_data)
-                    total_games = SteamDataExtractor.extract_total_games(games_data)
+                    # Get owned games for playtime analysis
+                    try:
+                        games_data = await steam_api.get_owned_games(steam_id)
+                        return summary_data, ban_data, games_data
+                    except Exception as e:
+                        logger.warning(f"Could not fetch games for {steam_id}: {e}")
+                        return summary_data, ban_data, None
 
-                    update_player(db, player, {
-                        "cs2_hours": cs2_hours,
-                        "total_games_owned": total_games,
-                        "stats_updated": datetime.utcnow()
-                    })
-                except Exception as e:
-                    logger.warning(f"Could not fetch games for {steam_id}: {e}")
+            summary_data, ban_data, games_data = asyncio.run(fetch_steam_data())
+
+            if summary_data.get("response", {}).get("players"):
+                player_info = summary_data["response"]["players"][0]
+                extracted_data = SteamDataExtractor.extract_player_data(player_info)
+
+                # Update player profile
+                update_data = {**extracted_data, "profile_updated": datetime.utcnow()}
+                update_player(db, player, update_data)
+
+            if ban_data.get("players"):
+                ban_info = ban_data["players"][0]
+                extracted_ban_data = SteamDataExtractor.extract_ban_data(ban_info)
+                create_or_update_player_ban(db, extracted_ban_data)
+
+            if games_data:
+                cs2_hours = SteamDataExtractor.extract_cs2_hours(games_data)
+                total_games = SteamDataExtractor.extract_total_games(games_data)
+
+                update_player(db, player, {
+                    "cs2_hours": cs2_hours,
+                    "total_games_owned": total_games,
+                    "stats_updated": datetime.utcnow()
+                })
 
         # Calculate suspicion score
         suspicion_data = calculate_suspicion_score(player)
@@ -133,7 +144,10 @@ def calculate_profile_flags(player) -> tuple[int, dict]:
 
     # New account flag (10 points)
     if player.account_created:
-        account_age_days = (datetime.utcnow() - datetime.fromtimestamp(player.account_created)).days
+        if isinstance(player.account_created, datetime):
+            account_age_days = (datetime.utcnow() - player.account_created).days
+        else:
+            account_age_days = (datetime.utcnow() - datetime.fromtimestamp(player.account_created)).days
         if account_age_days < 30:
             score += 10
             flags["new_account"] = {

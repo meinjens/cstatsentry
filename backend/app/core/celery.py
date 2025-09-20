@@ -12,6 +12,9 @@ celery_app = Celery(
     ]
 )
 
+# Import task modules to register them
+from app.tasks import match_sync, player_analysis, steam_data_update
+
 # Celery configuration
 celery_app.conf.update(
     task_serializer="json",

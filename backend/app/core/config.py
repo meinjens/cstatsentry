@@ -7,12 +7,12 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://statsentry:password@localhost:5432/statsentry"
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    # API Keys
-    STEAM_API_KEY: str
+    # API Keys - Set defaults for development, override in production
+    STEAM_API_KEY: str = "your-steam-api-key-here"
     LEETIFY_API_KEY: Optional[str] = None
 
-    # Security
-    SECRET_KEY: str
+    # Security - Set defaults for development, override in production
+    SECRET_KEY: str = "your-secret-key-here-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 

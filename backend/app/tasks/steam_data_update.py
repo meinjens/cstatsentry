@@ -37,18 +37,24 @@ def update_ban_status_batch(self, batch_size: int = 100):
         updated_count = 0
 
         # Process in batches of 100 (Steam API limit)
+        import asyncio
+
+        async def process_batch(batch_ids):
+            async with steam_api:
+                ban_data = await steam_api.get_player_bans(batch_ids)
+                return ban_data
+
         for i in range(0, len(steam_ids), batch_size):
             batch_ids = steam_ids[i:i + batch_size]
 
             try:
-                async with steam_api:
-                    ban_data = await steam_api.get_player_bans(batch_ids)
+                ban_data = asyncio.run(process_batch(batch_ids))
 
-                    if ban_data.get("players"):
-                        for ban_info in ban_data["players"]:
-                            extracted_data = SteamDataExtractor.extract_ban_data(ban_info)
-                            create_or_update_player_ban(db, extracted_data)
-                            updated_count += 1
+                if ban_data.get("players"):
+                    for ban_info in ban_data["players"]:
+                        extracted_data = SteamDataExtractor.extract_ban_data(ban_info)
+                        create_or_update_player_ban(db, extracted_data)
+                        updated_count += 1
 
                 # Update task progress
                 current_task.update_state(
@@ -131,31 +137,37 @@ def update_player_profiles_batch(self, batch_size: int = 50):
         updated_count = 0
 
         # Process in batches
+        import asyncio
+
+        async def process_profile_batch(batch_ids):
+            async with steam_api:
+                summary_data = await steam_api.get_player_summaries(batch_ids)
+                return summary_data
+
         for i in range(0, len(steam_ids), batch_size):
             batch_ids = steam_ids[i:i + batch_size]
 
             try:
-                async with steam_api:
-                    summary_data = await steam_api.get_player_summaries(batch_ids)
+                summary_data = asyncio.run(process_profile_batch(batch_ids))
 
-                    if summary_data.get("response", {}).get("players"):
-                        for player_info in summary_data["response"]["players"]:
-                            extracted_data = SteamDataExtractor.extract_player_data(player_info)
-                            extracted_data["profile_updated"] = datetime.utcnow()
+                if summary_data.get("response", {}).get("players"):
+                    for player_info in summary_data["response"]["players"]:
+                        extracted_data = SteamDataExtractor.extract_player_data(player_info)
+                        extracted_data["profile_updated"] = datetime.utcnow()
 
-                            # Update player in database
-                            player = db.query(Player).filter(
-                                Player.steam_id == extracted_data["steam_id"]
-                            ).first()
+                        # Update player in database
+                        player = db.query(Player).filter(
+                            Player.steam_id == extracted_data["steam_id"]
+                        ).first()
 
-                            if player:
-                                for field, value in extracted_data.items():
-                                    if hasattr(player, field):
-                                        setattr(player, field, value)
+                        if player:
+                            for field, value in extracted_data.items():
+                                if hasattr(player, field):
+                                    setattr(player, field, value)
 
-                                updated_count += 1
+                            updated_count += 1
 
-                        db.commit()
+                    db.commit()
 
                 # Update task progress
                 current_task.update_state(

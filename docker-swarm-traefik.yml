@@ -1,0 +1,220 @@
+version: '3.8'
+
+networks:
+  traefik:
+    external: true
+  internal:
+    driver: overlay
+    attachable: true
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-statsentry}
+      POSTGRES_USER: ${POSTGRES_USER:-statsentry}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-statsentry}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  api:
+    image: cstatsentry/api:latest
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statsentry}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - FRONTEND_URL=https://${DOMAIN:-statsentry.example.com}
+      - DEBUG=false
+    networks:
+      - traefik
+      - internal
+    depends_on:
+      - db
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.cstatsentry-api.rule=Host(`${DOMAIN:-statsentry.example.com}`) && PathPrefix(`/api`)
+        - traefik.http.routers.cstatsentry-api.entrypoints=websecure
+        - traefik.http.routers.cstatsentry-api.tls.certresolver=letsencrypt
+        - traefik.http.services.cstatsentry-api.loadbalancer.server.port=8000
+        - traefik.http.middlewares.cstatsentry-api-compress.compress=true
+        - traefik.http.middlewares.cstatsentry-api-ratelimit.ratelimit.burst=100
+        - traefik.http.middlewares.cstatsentry-api-ratelimit.ratelimit.average=50
+        - traefik.http.routers.cstatsentry-api.middlewares=cstatsentry-api-compress,cstatsentry-api-ratelimit
+
+  frontend:
+    image: cstatsentry/frontend:latest
+    environment:
+      - NEXT_PUBLIC_API_URL=https://${DOMAIN:-statsentry.example.com}/api
+      - NEXT_PUBLIC_STEAM_RETURN_URL=https://${DOMAIN:-statsentry.example.com}/auth/steam/callback
+    networks:
+      - traefik
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.cstatsentry-frontend.rule=Host(`${DOMAIN:-statsentry.example.com}`)
+        - traefik.http.routers.cstatsentry-frontend.entrypoints=websecure
+        - traefik.http.routers.cstatsentry-frontend.tls.certresolver=letsencrypt
+        - traefik.http.services.cstatsentry-frontend.loadbalancer.server.port=3000
+        - traefik.http.middlewares.cstatsentry-frontend-compress.compress=true
+        - traefik.http.middlewares.cstatsentry-frontend-headers.headers.customrequestheaders.X-Forwarded-Proto=https
+        - traefik.http.middlewares.cstatsentry-frontend-headers.headers.customrequestheaders.X-Forwarded-For=
+        - traefik.http.routers.cstatsentry-frontend.middlewares=cstatsentry-frontend-compress,cstatsentry-frontend-headers
+
+  celery-worker:
+    image: cstatsentry/api:latest
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statsentry}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+    networks:
+      - internal
+    depends_on:
+      - db
+      - redis
+    command: celery -A app.core.celery worker --loglevel=info
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  celery-beat:
+    image: cstatsentry/api:latest
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statsentry}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+    networks:
+      - internal
+    depends_on:
+      - db
+      - redis
+    command: celery -A app.core.celery beat --loglevel=info
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  celery-flower:
+    image: cstatsentry/api:latest
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statsentry}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    networks:
+      - internal
+    depends_on:
+      - redis
+    command: celery -A app.core.celery flower --port=5555
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
