@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, func, DECIMAL, JSON
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, func, DECIMAL, JSON, Text
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -9,7 +8,7 @@ class Player(Base):
 
     steam_id = Column(String(17), primary_key=True)
     current_name = Column(String(255))
-    previous_names = Column(ARRAY(String))
+    previous_names = Column(JSON)  # Store as JSON array for SQLite compatibility
     avatar_url = Column(String)
     profile_url = Column(String)
 

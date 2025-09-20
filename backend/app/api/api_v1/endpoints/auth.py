@@ -80,6 +80,8 @@ async def steam_callback(
             player_info = player_data["response"]["players"][0]
             extracted_data = SteamDataExtractor.extract_player_data(player_info)
 
+    except HTTPException:
+        raise  # Re-raise HTTPExceptions as is
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -1,0 +1,140 @@
+import pytest
+from typing import Generator
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+
+from app.main import app
+from app.db.base import Base
+from app.db.session import get_db
+from app.models.user import User
+from app.models.player import Player
+from app.crud.user import create_user
+from app.core.security import create_access_token
+
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@pytest.fixture(scope="session")
+def db():
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(scope="function")
+def db_session(db):
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+    yield session
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+
+@pytest.fixture(scope="function")
+def client(db_session):
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def test_user(db_session):
+    user_data = {
+        "steam_id": "76561198123456789",
+        "steam_name": "TestUser",
+        "avatar_url": "https://example.com/avatar.jpg"
+    }
+    user = create_user(db_session, user_data)
+    return user
+
+
+@pytest.fixture
+def test_user_token(test_user):
+    return create_access_token(subject=test_user.steam_id)
+
+
+@pytest.fixture
+def authenticated_client(client, test_user_token):
+    client.headers = {
+        **getattr(client, 'headers', {}),
+        "Authorization": f"Bearer {test_user_token}"
+    }
+    return client
+
+
+@pytest.fixture
+def sample_steam_auth_response():
+    return {
+        "openid.mode": "id_res",
+        "openid.claimed_id": "https://steamcommunity.com/openid/id/76561198123456789",
+        "openid.identity": "https://steamcommunity.com/openid/id/76561198123456789",
+        "openid.return_to": "http://localhost:3000/auth/steam/callback",
+        "openid.response_nonce": "2023-01-01T00:00:00ZrKzYzQ",
+        "openid.assoc_handle": "1234567890",
+        "openid.signed": "signed,mode,identity,return_to,response_nonce,assoc_handle",
+        "openid.sig": "test_signature"
+    }
+
+
+@pytest.fixture
+def sample_steam_player_data():
+    return {
+        "response": {
+            "players": [{
+                "steamid": "76561198123456789",
+                "personaname": "TestPlayer",
+                "avatar": "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/test_small.jpg",
+                "avatarmedium": "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/test_medium.jpg",
+                "avatarfull": "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/test_full.jpg",
+                "personastate": 1,
+                "communityvisibilitystate": 3,
+                "profilestate": 1,
+                "realname": "Test Player",
+                "primaryclanid": "103582791429521408",
+                "timecreated": 1234567890,
+                "personastateflags": 0
+            }]
+        }
+    }
+
+
+@pytest.fixture
+def mock_steam_auth_success(monkeypatch, sample_steam_player_data):
+    async def mock_verify_auth_response(params):
+        return "76561198123456789"
+
+    async def mock_get_player_summaries(steam_ids):
+        return sample_steam_player_data
+
+    from app.services.steam_auth import steam_auth
+    from app.services.steam_api import steam_api
+
+    monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
+    monkeypatch.setattr(steam_api, "get_player_summaries", mock_get_player_summaries)
+
+
+@pytest.fixture
+def mock_steam_auth_failure(monkeypatch):
+    async def mock_verify_auth_response(params):
+        return None
+
+    from app.services.steam_auth import steam_auth
+    monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
