@@ -21,7 +21,7 @@ services:
           - node.role == manager
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     volumes:
       - redis_data:/data
     healthcheck:
