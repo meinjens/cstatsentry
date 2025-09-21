@@ -5,7 +5,7 @@ alembic==1.12.1
 # Use psycopg2 instead of psycopg2-binary on macOS
 psycopg2==2.9.9
 redis==5.0.1
-celery==5.3.4
+celery==5.5.3
 pydantic==2.5.0
 pydantic-settings==2.1.0
 python-jose[cryptography]==3.3.0
