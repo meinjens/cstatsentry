@@ -5,6 +5,13 @@ from datetime import datetime
 from app.db.session import get_db
 from app.api.deps import get_current_user
 from app.models.user import User
+from app.schemas.match import MatchDetails
+from app.crud.match import (
+    get_match_details,
+    get_match_details_with_player_focus,
+    get_match_details_with_rounds,
+    validate_match_id
+)
 
 router = APIRouter()
 
@@ -26,15 +33,37 @@ async def get_user_matches(
     }
 
 
-@router.get("/{match_id}")
-async def get_match_details(
+@router.get("/{match_id}", response_model=MatchDetails)
+async def get_match_details_endpoint(
     match_id: str,
+    response: Response,
+    player_focus: Optional[str] = Query(None, description="Steam ID to focus on"),
+    include_rounds: bool = Query(False, description="Include round-by-round data"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get specific match details"""
-    # TODO: Implement match details retrieval
-    raise HTTPException(status_code=404, detail="Match not found")
+
+    # Validate match ID format
+    if not validate_match_id(match_id):
+        raise HTTPException(status_code=400, detail="Invalid match ID format")
+
+    # Handle different query options
+    if player_focus:
+        match_details = get_match_details_with_player_focus(db, match_id, player_focus)
+    elif include_rounds:
+        match_details = get_match_details_with_rounds(db, match_id)
+    else:
+        match_details = get_match_details(db, match_id)
+
+    if not match_details:
+        raise HTTPException(status_code=404, detail="Match not found")
+
+    # Add caching headers - match data shouldn't change frequently
+    response.headers["Cache-Control"] = "public, max-age=300"  # 5 minutes
+    response.headers["ETag"] = f'"{match_id}-{hash(str(match_details.model_dump()))}"'
+
+    return match_details
 
 
 @router.post("/sync")
