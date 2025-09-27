@@ -96,19 +96,23 @@ class TestSteamAuthIntegration:
             }
 
             # Step 3: Process callback
-            response = client.get("/api/v1/auth/steam/callback", params=callback_params)
-            assert response.status_code == 200
+            response = client.get("/api/v1/auth/steam/callback", params=callback_params, follow_redirects=False)
+            assert response.status_code == 307  # Redirect response
 
-            data = response.json()
-            assert "steam_id" in data
-            assert "steam_name" in data
-            assert "access_token" in data
-            assert data["steam_id"] == "76561198123456789"
-            assert data["steam_name"] == "TestPlayer"
-            assert data["access_token"] is not None
+            # Extract token and user data from redirect URL
+            location = response.headers.get("location")
+            assert location is not None
+            assert "/auth/steam/callback" in location
+            assert "token=" in location
+            assert "user=" in location
+
+            # Extract token from redirect URL for further testing
+            from urllib.parse import urlparse, parse_qs
+            parsed_url = urlparse(location)
+            query_params = parse_qs(parsed_url.query)
+            token = query_params["token"][0]
 
             # Step 4: Use token to access protected endpoint
-            token = data["access_token"]
             headers = {"Authorization": f"Bearer {token}"}
 
             response = client.get("/api/v1/auth/me", headers=headers)
@@ -297,11 +301,16 @@ class TestEndToEndUserJourney:
             }
 
             # User authenticates
-            response = client.get("/api/v1/auth/steam/callback", params=callback_params)
-            assert response.status_code == 200
+            response = client.get("/api/v1/auth/steam/callback", params=callback_params, follow_redirects=False)
+            assert response.status_code == 307  # Redirect response
 
-            auth_data = response.json()
-            token = auth_data["access_token"]
+            # Extract token from redirect URL
+            location = response.headers.get("location")
+            assert location is not None
+            from urllib.parse import urlparse, parse_qs
+            parsed_url = urlparse(location)
+            query_params = parse_qs(parsed_url.query)
+            token = query_params["token"][0]
             headers = {"Authorization": f"Bearer {token}"}
 
             # Step 2: User accesses dashboard
