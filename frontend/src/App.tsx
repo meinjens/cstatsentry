@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
+import AuthCallback from './pages/AuthCallback'
 import Players from './pages/Players'
 import PlayerDetail from './pages/PlayerDetail'
 import Matches from './pages/Matches'
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/test" element={<Test />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/auth/steam/callback" element={<AuthCallback />} />
         <Route path="/" element={<Layout />}>
           <Route index element={
             <ProtectedRoute>
