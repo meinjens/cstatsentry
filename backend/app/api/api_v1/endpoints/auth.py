@@ -1,6 +1,9 @@
 from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from urllib.parse import urlencode, quote
+import json
 from app.db.session import get_db
 from app.schemas.auth import SteamAuthResponse, Token
 from app.schemas.user import User as UserSchema
@@ -34,7 +37,7 @@ async def steam_callback(
     openid_assoc_handle: str = Query(None, alias="openid.assoc_handle"),
     openid_signed: str = Query(None, alias="openid.signed"),
     openid_sig: str = Query(None, alias="openid.sig"),
-) -> SteamAuthResponse:
+):
     """Handle Steam OAuth callback"""
 
     # Collect all OpenID parameters
@@ -61,10 +64,10 @@ async def steam_callback(
     steam_id = await steam_auth.verify_auth_response(openid_params)
 
     if not steam_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Steam authentication failed"
-        )
+        # Redirect to frontend with error
+        error_params = {"error": "auth_failed"}
+        redirect_url = f"{settings.FRONTEND_URL}/login?{urlencode(error_params)}"
+        return RedirectResponse(url=redirect_url)
 
     # Get user profile from Steam API
     try:
@@ -81,12 +84,15 @@ async def steam_callback(
             extracted_data = SteamDataExtractor.extract_player_data(player_info)
 
     except HTTPException:
-        raise  # Re-raise HTTPExceptions as is
+        # Redirect to frontend with error
+        error_params = {"error": "steam_api_error"}
+        redirect_url = f"{settings.FRONTEND_URL}/login?{urlencode(error_params)}"
+        return RedirectResponse(url=redirect_url)
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Steam API error: {str(e)}"
-        )
+        # Redirect to frontend with error
+        error_params = {"error": "steam_api_error"}
+        redirect_url = f"{settings.FRONTEND_URL}/login?{urlencode(error_params)}"
+        return RedirectResponse(url=redirect_url)
 
     # Create or update user
     user = get_user_by_steam_id(db, steam_id)
@@ -112,12 +118,21 @@ async def steam_callback(
         subject=steam_id, expires_delta=access_token_expires
     )
 
-    return SteamAuthResponse(
-        steam_id=steam_id,
-        steam_name=user.steam_name or "",
-        avatar_url=user.avatar_url,
-        access_token=access_token
-    )
+    # Prepare user data for frontend
+    user_data = {
+        "steam_id": steam_id,
+        "steam_name": user.steam_name or "",
+        "avatar_url": user.avatar_url,
+        "user_id": user.user_id
+    }
+
+    # Redirect to frontend with token and user data
+    callback_params = {
+        "token": access_token,
+        "user": quote(json.dumps(user_data))  # Proper JSON encoding
+    }
+    redirect_url = f"{settings.FRONTEND_URL}/auth/steam/callback?{urlencode(callback_params)}"
+    return RedirectResponse(url=redirect_url)
 
 
 @router.post("/refresh")
