@@ -3,9 +3,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.core.security import decode_token
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
-from app.crud.user import get_user_by_steam_id
+from app.crud.user import get_user_by_steam_id, create_user
 
 security = HTTPBearer(auto_error=False)
 
@@ -15,6 +16,7 @@ def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> User:
     """Get current authenticated user from JWT token"""
+
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

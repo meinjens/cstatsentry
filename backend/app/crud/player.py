@@ -1,7 +1,9 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
+from sqlalchemy import func, case
 from app.models.player import Player, PlayerBan, PlayerAnalysis
-from app.schemas.player import PlayerCreate, PlayerUpdate
+from app.models.match import MatchPlayer, Match
+from app.schemas.player import PlayerCreate, PlayerUpdate, PlayerStats
 
 
 def get_player_by_steam_id(db: Session, steam_id: str) -> Optional[Player]:
@@ -88,3 +90,68 @@ def create_player_analysis(db: Session, analysis_data: dict) -> PlayerAnalysis:
     db.commit()
     db.refresh(analysis)
     return analysis
+
+
+def get_player_stats(db: Session, steam_id: str) -> Optional[PlayerStats]:
+    """Get player statistics aggregated from match data"""
+    # Check if player exists
+    player = get_player_by_steam_id(db, steam_id)
+    if not player:
+        return None
+
+    # Aggregate basic stats from match_players table
+    stats_query = (
+        db.query(
+            func.count(MatchPlayer.match_id).label('total_matches'),
+            func.sum(MatchPlayer.kills).label('total_kills'),
+            func.sum(MatchPlayer.deaths).label('total_deaths'),
+            func.avg(MatchPlayer.headshot_percentage).label('avg_headshot_percentage')
+        )
+        .filter(MatchPlayer.steam_id == steam_id)
+        .first()
+    )
+
+    # Handle case where no matches exist
+    if not stats_query or stats_query.total_matches == 0:
+        return PlayerStats(
+            steam_id=steam_id,
+            total_matches=0,
+            total_kills=0,
+            total_deaths=0,
+            kd_ratio=0.0,
+            headshot_percentage=0.0,
+            average_damage_per_round=0.0,
+            wins=0,
+            losses=0,
+            win_rate=0.0
+        )
+
+    total_matches = stats_query.total_matches or 0
+    total_kills = stats_query.total_kills or 0
+    total_deaths = stats_query.total_deaths or 0
+    avg_headshot_percentage = float(stats_query.avg_headshot_percentage or 0.0)
+
+    # For now, use placeholder values for wins/losses (would need more complex query)
+    # In a real implementation, we'd need to determine wins based on team and scores
+    wins = 0
+    losses = 0
+
+    # Calculate derived stats
+    kd_ratio = float(total_kills / max(total_deaths, 1))  # Avoid division by zero
+    win_rate = 0.0
+
+    # Placeholder for average damage per round (would need more detailed match data)
+    average_damage_per_round = 0.0
+
+    return PlayerStats(
+        steam_id=steam_id,
+        total_matches=total_matches,
+        total_kills=total_kills,
+        total_deaths=total_deaths,
+        kd_ratio=kd_ratio,
+        headshot_percentage=avg_headshot_percentage,
+        average_damage_per_round=average_damage_per_round,
+        wins=wins,
+        losses=losses,
+        win_rate=win_rate
+    )

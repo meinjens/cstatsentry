@@ -1,4 +1,5 @@
 import pytest
+import asyncio
 from typing import Generator
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -11,7 +12,9 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.player import Player
 from app.crud.user import create_user
+from app.crud.player import create_player
 from app.core.security import create_access_token
+from app.core.config import settings
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -56,7 +59,22 @@ def client(db_session):
 
 
 @pytest.fixture
-def test_user(db_session):
+def test_player(db_session):
+    """Create a test player for stats testing"""
+    player_data = {
+        "steam_id": "76561198123456789",
+        "current_name": "TestPlayer",
+        "avatar_url": "https://example.com/avatar.jpg",
+        "profile_url": "https://steamcommunity.com/profiles/76561198123456789",
+        "cs2_hours": 500,
+        "total_games_owned": 50
+    }
+    player = create_player(db_session, player_data)
+    return player
+
+
+@pytest.fixture
+def test_user(db_session, test_player):
     user_data = {
         "steam_id": "76561198123456789",
         "steam_name": "TestUser",
@@ -138,3 +156,69 @@ def mock_steam_auth_failure(monkeypatch):
 
     from app.services.steam_auth import steam_auth
     monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
+
+
+@pytest.fixture
+def test_admin_user(db_session):
+    """Create an admin user for testing"""
+    user_data = {
+        "steam_id": "76561198999999999",
+        "steam_name": "AdminUser",
+        "avatar_url": "https://example.com/admin_avatar.jpg",
+        "is_admin": True
+    }
+    user = create_user(db_session, user_data)
+    return user
+
+
+@pytest.fixture
+def test_admin_token(test_admin_user):
+    """Create an admin token for testing"""
+    return create_access_token(subject=test_admin_user.steam_id)
+
+
+@pytest.fixture
+def admin_client(client, test_admin_token):
+    """Client with admin authentication"""
+    client.headers = {
+        **getattr(client, 'headers', {}),
+        "Authorization": f"Bearer {test_admin_token}"
+    }
+    return client
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an instance of the default event loop for the test session."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture
+def sample_player_data():
+    """Sample player data for testing"""
+    return {
+        "steam_id": "76561198123456789",
+        "current_name": "TestPlayer",
+        "profile_url": "https://steamcommunity.com/id/testplayer",
+        "avatar_url": "https://example.com/avatar.jpg",
+        "country": "US",
+        "state": "CA",
+        "city": "San Francisco"
+    }
+
+
+@pytest.fixture
+def sample_match_data():
+    """Sample match data for testing"""
+    return {
+        "match_id": "CSGO-Test-Match-123",
+        "demo_url": "https://example.com/demo.dem",
+        "map_name": "de_dust2",
+        "game_mode": "competitive",
+        "started_at": "2023-01-01T12:00:00Z",
+        "finished_at": "2023-01-01T13:00:00Z",
+        "score_team1": 16,
+        "score_team2": 14
+    }

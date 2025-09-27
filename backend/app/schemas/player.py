@@ -92,6 +92,23 @@ class PlayerAnalysis(PlayerAnalysisBase):
         from_attributes = True
 
 
+class PlayerStats(BaseModel):
+    """Player game statistics"""
+    steam_id: str
+    total_matches: int
+    total_kills: int
+    total_deaths: int
+    kd_ratio: float
+    headshot_percentage: float
+    average_damage_per_round: float
+    wins: int = 0
+    losses: int = 0
+    win_rate: float = 0.0
+
+    class Config:
+        from_attributes = True
+
+
 class PlayerWithAnalysis(Player):
     """Player with latest analysis data"""
     latest_analysis: Optional[PlayerAnalysis] = None

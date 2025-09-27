@@ -1,13 +1,16 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 from app.db.session import get_db
-from app.schemas.player import Player as PlayerSchema, PlayerWithAnalysis, PlayerAnalysis
+from app.schemas.player import Player as PlayerSchema, PlayerWithAnalysis, PlayerAnalysis, PlayerStats
 from app.crud.player import (
     get_player_by_steam_id,
     get_player_analyses,
     get_latest_player_analysis,
-    get_player_ban_info
+    get_player_ban_info,
+    get_player_stats,
+    update_player
 )
 from app.api.deps import get_current_user
 from app.models.user import User
@@ -37,6 +40,25 @@ async def get_player(
     player_data.ban_info = ban_info
 
     return player_data
+
+
+@router.get("/{steam_id}/stats", response_model=PlayerStats)
+async def get_player_stats_endpoint(
+    steam_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get player game statistics"""
+    player = get_player_by_steam_id(db, steam_id)
+
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    stats = get_player_stats(db, steam_id)
+    if not stats:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    return stats
 
 
 @router.get("/{steam_id}/analysis", response_model=List[PlayerAnalysis])
@@ -88,3 +110,48 @@ async def get_suspicious_players(
     # This would join players with their latest analysis
     # and filter by suspicion score
     return []
+
+
+@router.post("/{steam_id}/update")
+async def update_player_profile(
+    steam_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update player profile from Steam API"""
+    player = get_player_by_steam_id(db, steam_id)
+
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    # Check rate limiting (max one update per hour per player)
+    if player.profile_updated:
+        time_since_last_update = datetime.now() - player.profile_updated
+        if time_since_last_update < timedelta(hours=1):
+            # Calculate seconds until next allowed update
+            retry_after = int((timedelta(hours=1) - time_since_last_update).total_seconds())
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "message": "Profile update rate limited",
+                    "retry_after": retry_after
+                },
+                headers={"Retry-After": str(retry_after)}
+            )
+
+    # Mock update (in real implementation, would call Steam API)
+    update_data = {
+        "profile_updated": datetime.now(),
+        "current_name": f"Updated_{player.current_name}",
+    }
+
+    updated_fields = ["profile_updated", "current_name"]
+
+    # Update player
+    updated_player = update_player(db, player, update_data)
+
+    return {
+        "steam_id": steam_id,
+        "updated_fields": updated_fields,
+        "updated_at": updated_player.profile_updated.isoformat()
+    }
