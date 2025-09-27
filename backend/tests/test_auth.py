@@ -16,24 +16,26 @@ class TestAuthEndpoints:
 
     def test_steam_callback_success(self, client: TestClient, db_session, mock_steam_auth_success, sample_steam_auth_response):
         """Test successful Steam authentication callback"""
-        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response)
-        assert response.status_code == 200
-        data = response.json()
+        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
+        assert response.status_code == 307  # Redirect response
 
-        assert "steam_id" in data
-        assert "steam_name" in data
-        assert "avatar_url" in data
-        assert "access_token" in data
-        assert data["steam_id"] == "76561198123456789"
-        assert data["steam_name"] == "TestPlayer"
+        # Check redirect URL contains correct callback
+        location = response.headers.get("location")
+        assert location is not None
+        assert "/auth/steam/callback" in location
+        assert "token=" in location
+        assert "user=" in location
 
     def test_steam_callback_auth_failure(self, client: TestClient, mock_steam_auth_failure, sample_steam_auth_response):
         """Test Steam authentication failure"""
-        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response)
-        assert response.status_code == 401
-        data = response.json()
-        assert "detail" in data
-        assert data["detail"] == "Steam authentication failed"
+        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
+        assert response.status_code == 307  # Redirect response
+
+        # Check redirect URL contains error
+        location = response.headers.get("location")
+        assert location is not None
+        assert "/login" in location
+        assert "error=auth_failed" in location
 
     def test_steam_callback_missing_params(self, client: TestClient):
         """Test Steam callback with missing required parameters"""
@@ -54,10 +56,14 @@ class TestAuthEndpoints:
         monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
         monkeypatch.setattr(steam_api, "get_player_summaries", mock_get_player_summaries)
 
-        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response)
-        assert response.status_code == 500
-        data = response.json()
-        assert "Steam API error" in data["detail"]
+        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
+        assert response.status_code == 307  # Redirect response
+
+        # Check redirect URL contains error
+        location = response.headers.get("location")
+        assert location is not None
+        assert "/login" in location
+        assert "error=steam_api_error" in location
 
     def test_steam_callback_empty_player_data(self, client: TestClient, monkeypatch, sample_steam_auth_response):
         """Test Steam callback when player data is empty"""
@@ -73,10 +79,14 @@ class TestAuthEndpoints:
         monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
         monkeypatch.setattr(steam_api, "get_player_summaries", mock_get_player_summaries)
 
-        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response)
-        assert response.status_code == 400
-        data = response.json()
-        assert data["detail"] == "Could not fetch Steam profile"
+        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
+        assert response.status_code == 307  # Redirect response
+
+        # Check redirect URL contains error
+        location = response.headers.get("location")
+        assert location is not None
+        assert "/login" in location
+        assert "error=steam_api_error" in location
 
     def test_refresh_token_success(self, authenticated_client: TestClient):
         """Test successful token refresh"""
@@ -115,9 +125,12 @@ class TestAuthEndpoints:
 
     def test_steam_callback_existing_user_update(self, client: TestClient, db_session, test_user, mock_steam_auth_success, sample_steam_auth_response):
         """Test Steam callback updates existing user"""
-        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response)
-        assert response.status_code == 200
-        data = response.json()
+        response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
+        assert response.status_code == 307  # Redirect response
 
-        assert data["steam_id"] == test_user.steam_id
-        assert "access_token" in data
+        # Check redirect URL contains correct callback
+        location = response.headers.get("location")
+        assert location is not None
+        assert "/auth/steam/callback" in location
+        assert "token=" in location
+        assert "user=" in location
