@@ -1,0 +1,581 @@
+{
+  "v": 10,
+  "name": "CStatSentry API",
+  "folders": [
+    {
+      "v": "15",
+      "name": "Health Check",
+      "requests": [
+        {
+          "v": "15",
+          "name": "API Root",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Health Check",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/health",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    },
+    {
+      "v": "15",
+      "name": "Authentication",
+      "requests": [
+        {
+          "v": "15",
+          "name": "Steam Login URL",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/auth/steam/login",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Get Current User (Auth)",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/auth/me",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Refresh Token",
+          "method": "POST",
+          "endpoint": "http://localhost:8000/api/v1/auth/refresh",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Logout",
+          "method": "POST",
+          "endpoint": "http://localhost:8000/api/v1/auth/logout",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    },
+    {
+      "v": "15",
+      "name": "Users",
+      "requests": [
+        {
+          "v": "15",
+          "name": "Get My Profile",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/users/me",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Update My Profile",
+          "method": "PUT",
+          "endpoint": "http://localhost:8000/api/v1/users/me",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"steam_name\": \"New Steam Name\",\n  \"avatar_url\": \"https://example.com/avatar.jpg\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    },
+    {
+      "v": "15",
+      "name": "Players",
+      "requests": [
+        {
+          "v": "15",
+          "name": "Get Suspicious Players",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/players/",
+          "params": [
+            {
+              "key": "min_suspicion_score",
+              "value": "60",
+              "active": true,
+              "description": ""
+            },
+            {
+              "key": "limit",
+              "value": "50",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Get Player Details",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/players/STEAM_ID_HERE",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Get Player Analysis History",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/players/STEAM_ID_HERE/analysis",
+          "params": [
+            {
+              "key": "limit",
+              "value": "10",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Trigger Player Analysis",
+          "method": "POST",
+          "endpoint": "http://localhost:8000/api/v1/players/STEAM_ID_HERE/analyze",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    },
+    {
+      "v": "15",
+      "name": "Matches",
+      "requests": [
+        {
+          "v": "15",
+          "name": "Get User Matches",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/matches/",
+          "params": [
+            {
+              "key": "limit",
+              "value": "50",
+              "active": true,
+              "description": ""
+            },
+            {
+              "key": "offset",
+              "value": "0",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Get Match Details",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/matches/MATCH_ID_HERE",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Trigger Match Sync",
+          "method": "POST",
+          "endpoint": "http://localhost:8000/api/v1/matches/sync",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Get Sync Status",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/matches/sync/status",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    },
+    {
+      "v": "15",
+      "name": "Dashboard",
+      "requests": [
+        {
+          "v": "15",
+          "name": "Get Dashboard Summary",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/dashboard/summary",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Get Recent Activity",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/dashboard/recent",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "Get User Statistics",
+          "method": "GET",
+          "endpoint": "http://localhost:8000/api/v1/dashboard/statistics",
+          "params": [],
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    }
+  ],
+  "requests": [],
+  "auth": {
+    "authType": "none",
+    "authActive": true
+  },
+  "headers": [],
+  "variables": [],
+  "_ref_id": "coll_cstatsentry_api"
+}

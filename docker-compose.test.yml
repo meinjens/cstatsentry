@@ -1,44 +1,52 @@
 version: '3.8'
 
 services:
-  postgres-test:
+  # Test Database
+  test-db:
     image: postgres:17
     environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: test_cstatsentry
-      POSTGRES_USER: postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      POSTGRES_DB: test_statsentry
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
     ports:
       - "5433:5432"
-
-  redis-test:
-    image: redis:8
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U test_user -d test_statsentry"]
+      interval: 5s
       timeout: 5s
       retries: 5
+
+  # Test Redis
+  test-redis:
+    image: redis:8-alpine
     ports:
       - "6380:6379"
-
-  backend-test:
-    build:
-      context: ./backend
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/test_cstatsentry
-      - REDIS_URL=redis://redis-test:6379/0
-      - CELERY_BROKER_URL=redis://redis-test:6379/1
-      - STEAM_API_KEY=test_key
-      - SECRET_KEY=test_secret_key
-    depends_on:
-      postgres-test:
-        condition: service_healthy
-      redis-test:
-        condition: service_healthy
-    command: python -m pytest tests/ -v --cov=app --cov-report=xml
     volumes:
-      - ./backend:/app
+      - test_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Mock Steam API
+  mock-steam-api:
+    build: ./mock-services/steam-api
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=development
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./mock-services/steam-api:/app
+    restart: unless-stopped
+
+volumes:
+  test_postgres_data:
+  test_redis_data:
