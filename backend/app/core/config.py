@@ -1,8 +1,10 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict()
+
     # Database
     DATABASE_URL: str = "postgresql://statsentry:password@localhost:5432/statsentry"
     REDIS_URL: str = "redis://localhost:6379/0"
