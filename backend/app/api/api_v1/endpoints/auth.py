@@ -1,20 +1,21 @@
-from typing import Dict, Any
+import json
+from datetime import timedelta
+from urllib.parse import urlencode, quote
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from urllib.parse import urlencode, quote
-import json
-from app.db.session import get_db
-from app.schemas.auth import SteamAuthResponse, Token
-from app.schemas.user import User as UserSchema
-from app.services.steam_auth import steam_auth
-from app.services.steam_api import get_steam_api_client, SteamDataExtractor
-from app.crud.user import get_user_by_steam_id, create_user, update_user
-from app.core.security import create_access_token
+
 from app.api.deps import get_current_user, security
-from datetime import timedelta
 from app.core.config import settings
+from app.core.security import create_access_token
+from app.crud.user import get_user_by_steam_id, create_user, update_user
+from app.db.session import get_db
+from app.schemas.auth import Token
+from app.schemas.user import User as UserSchema
+from app.services.steam_api import get_steam_api_client, SteamDataExtractor
+from app.services.steam_auth import steam_auth
 
 router = APIRouter()
 

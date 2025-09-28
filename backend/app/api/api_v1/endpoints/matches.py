@@ -1,33 +1,50 @@
-from typing import List, Optional
+from datetime import datetime
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
-from datetime import datetime
-from app.db.session import get_db
+
 from app.api.deps import get_current_user
-from app.models.user import User
-from app.schemas.match import MatchDetails
 from app.crud.match import (
     get_match_details,
     get_match_details_with_player_focus,
     get_match_details_with_rounds,
+    get_user_matches,
     validate_match_id
 )
+from app.db.session import get_db
+from app.models.user import User
+from app.schemas.match import MatchDetails
 
 router = APIRouter()
 
 
 @router.get("/")
-async def get_user_matches(
+async def get_user_matches_endpoint(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get user's match history"""
-    # TODO: Implement match retrieval from database
+    matches = get_user_matches(db, current_user.user_id, limit, offset)
+
+    # Convert to response format
+    match_list = []
+    for match in matches:
+        match_list.append({
+            "match_id": match.match_id,
+            "match_date": match.match_date.isoformat() if match.match_date else None,
+            "map": match.map,
+            "score_team1": match.score_team1,
+            "score_team2": match.score_team2,
+            "user_team": match.user_team,
+            "processed": match.processed
+        })
+
     return {
-        "matches": [],
-        "total": 0,
+        "matches": match_list,
+        "total": len(match_list),  # For simplicity, not doing a separate count query
         "limit": limit,
         "offset": offset
     }

@@ -1,21 +1,17 @@
-import pytest
 import asyncio
-from typing import Generator
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
+from app.core.security import create_access_token
+from app.crud.player import create_player
+from app.crud.user import create_user
 from app.db.base import Base
 from app.db.session import get_db
-from app.models.user import User
-from app.models.player import Player
-from app.crud.user import create_user
-from app.crud.player import create_player
-from app.core.security import create_access_token
-from app.core.config import settings
-
+from app.main import app
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -143,7 +139,6 @@ def mock_steam_auth_success(monkeypatch, sample_steam_player_data):
         return sample_steam_player_data
 
     from app.services.steam_auth import steam_auth
-    from app.services.steam_api import get_steam_api_client
 
     # Mock the factory function to return a client with mocked methods
     def mock_get_steam_api_client():

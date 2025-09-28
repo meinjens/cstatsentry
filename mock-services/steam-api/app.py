@@ -6,11 +6,10 @@ This service mimics the Steam Web API endpoints used by CStatSentry
 for testing purposes without hitting the real Steam API.
 """
 
-import json
 import time
 from datetime import datetime
+
 from flask import Flask, request, jsonify
-from urllib.parse import parse_qs, urlparse
 
 app = Flask(__name__)
 
@@ -73,6 +72,173 @@ MOCK_BANS = {
     }
 }
 
+# Mock Leetify data
+MOCK_MATCHES = {
+    "76561198123456789": [
+        {
+            "matchId": "3-match-2025-09-28-001",
+            "gameType": "competitive",
+            "map": "de_dust2",
+            "startTime": 1727512800000,  # 2025-09-28 12:00:00 UTC
+            "endTime": 1727515500000,    # 2025-09-28 12:45:00 UTC
+            "rounds": 30,
+            "teamAScore": 16,
+            "teamBScore": 14,
+            "myTeam": "A",
+            "result": "win",
+            "players": [
+                {
+                    "steamId": "76561198123456789",
+                    "name": "TestPlayer",
+                    "team": "A",
+                    "kills": 25,
+                    "deaths": 18,
+                    "assists": 7,
+                    "adr": 82.5,
+                    "rating": 1.15,
+                    "headshots": 12,
+                    "mvps": 3
+                },
+                {
+                    "steamId": "76561198999999998",
+                    "name": "Teammate1",
+                    "team": "A",
+                    "kills": 20,
+                    "deaths": 20,
+                    "assists": 5,
+                    "adr": 75.2,
+                    "rating": 1.02,
+                    "headshots": 8,
+                    "mvps": 2
+                },
+                {
+                    "steamId": "76561198999999997",
+                    "name": "Teammate2",
+                    "team": "A",
+                    "kills": 18,
+                    "deaths": 22,
+                    "assists": 8,
+                    "adr": 68.9,
+                    "rating": 0.95,
+                    "headshots": 6,
+                    "mvps": 1
+                },
+                {
+                    "steamId": "76561198999999996",
+                    "name": "Teammate3",
+                    "team": "A",
+                    "kills": 22,
+                    "deaths": 19,
+                    "assists": 4,
+                    "adr": 79.1,
+                    "rating": 1.08,
+                    "headshots": 9,
+                    "mvps": 4
+                },
+                {
+                    "steamId": "76561198999999995",
+                    "name": "Teammate4",
+                    "team": "A",
+                    "kills": 19,
+                    "deaths": 21,
+                    "assists": 6,
+                    "adr": 71.8,
+                    "rating": 0.98,
+                    "headshots": 7,
+                    "mvps": 1
+                },
+                {
+                    "steamId": "76561198999999994",
+                    "name": "Enemy1",
+                    "team": "B",
+                    "kills": 23,
+                    "deaths": 20,
+                    "assists": 3,
+                    "adr": 84.2,
+                    "rating": 1.12,
+                    "headshots": 11,
+                    "mvps": 2
+                },
+                {
+                    "steamId": "76561198999999993",
+                    "name": "Enemy2",
+                    "team": "B",
+                    "kills": 18,
+                    "deaths": 21,
+                    "assists": 7,
+                    "adr": 69.5,
+                    "rating": 0.91,
+                    "headshots": 5,
+                    "mvps": 1
+                },
+                {
+                    "steamId": "76561198999999992",
+                    "name": "Enemy3",
+                    "team": "B",
+                    "kills": 17,
+                    "deaths": 22,
+                    "assists": 5,
+                    "adr": 65.3,
+                    "rating": 0.88,
+                    "headshots": 4,
+                    "mvps": 0
+                },
+                {
+                    "steamId": "76561198999999991",
+                    "name": "Enemy4",
+                    "team": "B",
+                    "kills": 21,
+                    "deaths": 21,
+                    "assists": 4,
+                    "adr": 76.8,
+                    "rating": 1.01,
+                    "headshots": 8,
+                    "mvps": 3
+                },
+                {
+                    "steamId": "76561198999999990",
+                    "name": "Enemy5",
+                    "team": "B",
+                    "kills": 21,
+                    "deaths": 20,
+                    "assists": 6,
+                    "adr": 78.9,
+                    "rating": 1.05,
+                    "headshots": 9,
+                    "mvps": 2
+                }
+            ]
+        },
+        {
+            "matchId": "3-match-2025-09-27-001",
+            "gameType": "competitive",
+            "map": "de_mirage",
+            "startTime": 1727426400000,  # 2025-09-27 12:00:00 UTC
+            "endTime": 1727429100000,    # 2025-09-27 12:45:00 UTC
+            "rounds": 25,
+            "teamAScore": 13,
+            "teamBScore": 16,
+            "myTeam": "A",
+            "result": "loss",
+            "players": [
+                {
+                    "steamId": "76561198123456789",
+                    "name": "TestPlayer",
+                    "team": "A",
+                    "kills": 18,
+                    "deaths": 22,
+                    "assists": 5,
+                    "adr": 69.2,
+                    "rating": 0.89,
+                    "headshots": 7,
+                    "mvps": 1
+                }
+                # ... more players would be here
+            ]
+        }
+    ]
+}
+
 
 @app.route('/')
 def index():
@@ -119,6 +285,24 @@ def index():
 
         <div class="endpoint">
             <span class="method">GET</span> <a href="/openid/login">/openid/login</a> - Steam OpenID login simulation
+        </div>
+
+        <h2>🎯 Leetify API Endpoints</h2>
+
+        <div class="endpoint">
+            <span class="method">POST</span> /api/auth/token - Get authentication token
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> /api/profile/{steam_id}/games - Get recent games for player
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> /api/profile/{steam_id}/recent-games - Get latest games (simplified)
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> /api/games/{match_id} - Get detailed match data
         </div>
 
         <h2>👥 Pre-configured Test Users</h2>
@@ -413,9 +597,150 @@ def admin_delete_user(steam_id):
     return jsonify({"error": "User not found"}), 404
 
 
+# Leetify API Mock Endpoints
+@app.route('/api/profile/<steam_id>/games', methods=['GET'])
+def leetify_get_games(steam_id):
+    """Mock Leetify API - Get recent games for a player"""
+    # Validate authentication (simple mock)
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Invalid authentication"}), 401
+
+    # Get query parameters
+    limit = int(request.args.get('limit', 10))
+    offset = int(request.args.get('offset', 0))
+
+    if steam_id not in MOCK_MATCHES:
+        return jsonify({
+            "games": [],
+            "hasMore": False,
+            "total": 0
+        })
+
+    all_matches = MOCK_MATCHES[steam_id]
+
+    # Apply pagination
+    start_idx = offset
+    end_idx = start_idx + limit
+    matches_page = all_matches[start_idx:end_idx]
+
+    return jsonify({
+        "games": matches_page,
+        "hasMore": end_idx < len(all_matches),
+        "total": len(all_matches)
+    })
+
+
+@app.route('/api/games/<match_id>', methods=['GET'])
+def leetify_get_game_details(match_id):
+    """Mock Leetify API - Get detailed game data"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Invalid authentication"}), 401
+
+    # Find match across all users
+    for steam_id, matches in MOCK_MATCHES.items():
+        for match in matches:
+            if match['matchId'] == match_id:
+                return jsonify(match)
+
+    return jsonify({"error": "Match not found"}), 404
+
+
+@app.route('/api/profile/<steam_id>/recent-games', methods=['GET'])
+def leetify_get_recent_games(steam_id):
+    """Mock Leetify API - Get most recent games (simplified)"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Invalid authentication"}), 401
+
+    if steam_id not in MOCK_MATCHES:
+        return jsonify([])
+
+    # Return last 5 matches by default
+    recent_matches = MOCK_MATCHES[steam_id][:5]
+    return jsonify(recent_matches)
+
+
+@app.route('/api/auth/token', methods=['POST'])
+def leetify_auth():
+    """Mock Leetify API - Authentication endpoint"""
+    data = request.get_json()
+
+    # Simple mock authentication
+    if data and data.get('steam_id'):
+        return jsonify({
+            "access_token": f"mock_token_{data['steam_id']}_{int(time.time())}",
+            "token_type": "Bearer",
+            "expires_in": 3600
+        })
+
+    return jsonify({"error": "Invalid credentials"}), 401
+
+
+# Additional Mock Data Generation
+def generate_random_match(steam_id, match_number=1):
+    """Generate a random match for testing"""
+    import random
+
+    maps = ["de_dust2", "de_mirage", "de_inferno", "de_cache", "de_overpass", "de_train", "de_nuke"]
+
+    base_time = int(time.time()) - (match_number * 86400)  # One day apart
+
+    return {
+        "matchId": f"3-match-{datetime.fromtimestamp(base_time).strftime('%Y-%m-%d')}-{match_number:03d}",
+        "gameType": "competitive",
+        "map": random.choice(maps),
+        "startTime": base_time * 1000,
+        "endTime": (base_time + random.randint(1800, 3600)) * 1000,
+        "rounds": random.randint(16, 30),
+        "teamAScore": random.randint(13, 16),
+        "teamBScore": random.randint(13, 16),
+        "myTeam": random.choice(["A", "B"]),
+        "result": random.choice(["win", "loss", "tie"]),
+        "players": [
+            {
+                "steamId": steam_id,
+                "name": MOCK_USERS.get(steam_id, {}).get("personaname", "Unknown"),
+                "team": "A",
+                "kills": random.randint(10, 30),
+                "deaths": random.randint(10, 25),
+                "assists": random.randint(0, 10),
+                "adr": round(random.uniform(50.0, 100.0), 1),
+                "rating": round(random.uniform(0.5, 1.8), 2),
+                "headshots": random.randint(3, 15),
+                "mvps": random.randint(0, 5)
+            }
+            # Simplified - would have more players in real implementation
+        ]
+    }
+
+
+@app.route('/admin/matches/generate/<steam_id>', methods=['POST'])
+def admin_generate_matches(steam_id):
+    """Admin endpoint to generate random matches for testing"""
+    count = int(request.args.get('count', 5))
+
+    if steam_id not in MOCK_MATCHES:
+        MOCK_MATCHES[steam_id] = []
+
+    new_matches = []
+    for i in range(count):
+        match = generate_random_match(steam_id, len(MOCK_MATCHES[steam_id]) + i + 1)
+        new_matches.append(match)
+
+    MOCK_MATCHES[steam_id].extend(new_matches)
+
+    return jsonify({
+        "message": f"Generated {count} matches for {steam_id}",
+        "total_matches": len(MOCK_MATCHES[steam_id])
+    })
+
+
 if __name__ == '__main__':
-    print("🎮 Mock Steam API Service")
+    print("🎮 Mock Steam API + Leetify Service")
     print("📍 Running on http://localhost:5001")
-    print("🔗 OpenID: http://localhost:5001/openid/login")
+    print("🔗 Steam OpenID: http://localhost:5001/openid/login")
+    print("🎯 Leetify API: http://localhost:5001/api/")
     print("❤️  Health: http://localhost:5001/health")
     app.run(host='0.0.0.0', port=5001, debug=True)

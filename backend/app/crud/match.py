@@ -2,9 +2,11 @@
 CRUD operations for matches
 """
 
-from typing import Optional, List, Dict, Any
-from sqlalchemy.orm import Session
 from datetime import datetime
+from typing import Optional, List
+
+from sqlalchemy.orm import Session
+
 from app.models.match import Match, MatchPlayer
 from app.schemas.match import MatchDetails, MatchPlayer as MatchPlayerSchema, TeamStats
 
@@ -177,3 +179,54 @@ def get_match_details_with_rounds(db: Session, match_id: str) -> Optional[MatchD
 
     match_details.rounds = rounds
     return match_details
+
+
+def create_match(db: Session, match_data: dict) -> Match:
+    """Create a new match"""
+    match = Match(**match_data)
+    db.add(match)
+    db.commit()
+    db.refresh(match)
+    return match
+
+
+def update_match(db: Session, match: Match, update_data: dict) -> Match:
+    """Update an existing match"""
+    for field, value in update_data.items():
+        if hasattr(match, field):
+            setattr(match, field, value)
+
+    db.commit()
+    db.refresh(match)
+    return match
+
+
+def get_match_by_id(db: Session, match_id: str) -> Optional[Match]:
+    """Get match by ID"""
+    return db.query(Match).filter(Match.match_id == match_id).first()
+
+
+def create_match_player(db: Session, match_player_data: dict) -> MatchPlayer:
+    """Create a new match player record"""
+    match_player = MatchPlayer(**match_player_data)
+    db.add(match_player)
+    db.commit()
+    db.refresh(match_player)
+    return match_player
+
+
+def get_match_players(db: Session, match_id: str) -> List[MatchPlayer]:
+    """Get all players for a match"""
+    return db.query(MatchPlayer).filter(MatchPlayer.match_id == match_id).all()
+
+
+def get_user_matches(db: Session, user_id: int, limit: int = 50, offset: int = 0) -> List[Match]:
+    """Get matches for a user"""
+    return (
+        db.query(Match)
+        .filter(Match.user_id == user_id)
+        .order_by(Match.match_date.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
