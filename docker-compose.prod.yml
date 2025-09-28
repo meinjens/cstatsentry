@@ -32,6 +32,19 @@ services:
     deploy:
       replicas: 1
 
+  # Database Migration Service (runs once before API starts)
+  migration:
+    image: cstatsentry/api:latest
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
+    depends_on:
+      - db
+    command: ["alembic", "upgrade", "head"]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none  # Only run once, don't restart
+
   api:
     image: cstatsentry/api:latest
     environment:
@@ -45,6 +58,7 @@ services:
     depends_on:
       - db
       - redis
+      - migration
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
