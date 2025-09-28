@@ -1,6 +1,7 @@
 from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import RedirectResponse
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from urllib.parse import urlencode, quote
 import json
@@ -8,10 +9,10 @@ from app.db.session import get_db
 from app.schemas.auth import SteamAuthResponse, Token
 from app.schemas.user import User as UserSchema
 from app.services.steam_auth import steam_auth
-from app.services.steam_api import steam_api, SteamDataExtractor
+from app.services.steam_api import get_steam_api_client, SteamDataExtractor
 from app.crud.user import get_user_by_steam_id, create_user, update_user
 from app.core.security import create_access_token
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, security
 from datetime import timedelta
 from app.core.config import settings
 
@@ -71,7 +72,7 @@ async def steam_callback(
 
     # Get user profile from Steam API
     try:
-        async with steam_api:
+        async with get_steam_api_client() as steam_api:
             player_data = await steam_api.get_player_summaries([steam_id])
 
             if not player_data.get("response", {}).get("players"):
@@ -159,3 +160,65 @@ async def get_current_user_info(
 async def logout():
     """Logout user (client-side token removal)"""
     return {"message": "Successfully logged out"}
+
+
+@router.get("/test-steam-auth")
+async def test_steam_auth():
+    """Test Steam authentication with mock server"""
+    return await steam_auth.test_verification()
+
+
+@router.get("/debug-token")
+async def debug_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Debug token information"""
+    from app.core.security import decode_token
+    from datetime import datetime
+
+    if not credentials:
+        return {"error": "No token provided"}
+
+    token = credentials.credentials
+    payload = decode_token(token)
+
+    if not payload:
+        return {"error": "Invalid token"}
+
+    exp_timestamp = payload.get("exp")
+    exp_datetime = datetime.fromtimestamp(exp_timestamp) if exp_timestamp else None
+
+    return {
+        "token_valid": True,
+        "steam_id": payload.get("sub"),
+        "expires_at": exp_datetime.isoformat() if exp_datetime else None,
+        "expires_in_minutes": (exp_datetime - datetime.now()).total_seconds() / 60 if exp_datetime else None,
+        "current_time": datetime.now().isoformat(),
+        "payload": payload
+    }
+
+
+@router.get("/test-steam-api")
+async def test_steam_api():
+    """Test Steam API connection with mock server"""
+    try:
+        async with get_steam_api_client() as steam_api:
+            # Test getting player summaries for the test user
+            test_steam_id = "76561198123456789"
+            player_data = await steam_api.get_player_summaries([test_steam_id])
+
+            return {
+                "success": True,
+                "steam_api_url": steam_api.base_url,
+                "test_steam_id": test_steam_id,
+                "response": player_data
+            }
+    except Exception as e:
+        # Create a temporary client to get the base URL for error reporting
+        temp_client = get_steam_api_client()
+        return {
+            "success": False,
+            "steam_api_url": temp_client.base_url,
+            "error": str(e),
+            "error_type": type(e).__name__
+        }

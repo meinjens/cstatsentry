@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     # Steam OAuth
     STEAM_OPENID_URL: str = "https://steamcommunity.com/openid"
+    STEAM_API_URL: str = "https://api.steampowered.com"
     FRONTEND_URL: str = "http://localhost:3000"
     BACKEND_URL: str = "http://localhost:8000"
 

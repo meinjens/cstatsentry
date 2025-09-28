@@ -12,10 +12,51 @@ from app.crud.player import (
     get_player_stats,
     update_player
 )
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, security
 from app.models.user import User
+from fastapi.security import HTTPAuthorizationCredentials
 
 router = APIRouter()
+
+
+@router.get("/debug/auth")
+async def debug_players_auth(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Debug authentication for players endpoints"""
+    from app.core.security import decode_token
+    from datetime import datetime
+
+    if not credentials:
+        return {
+            "error": "No Authorization header found",
+            "message": "Frontend is not sending the token",
+            "expected_header": "Authorization: Bearer <token>"
+        }
+
+    token = credentials.credentials
+    payload = decode_token(token)
+
+    if not payload:
+        return {
+            "error": "Invalid token",
+            "token_preview": f"{token[:10]}...{token[-10:]}",
+            "message": "Token is malformed or expired"
+        }
+
+    exp_timestamp = payload.get("exp")
+    exp_datetime = datetime.fromtimestamp(exp_timestamp) if exp_timestamp else None
+    time_until_expiry = (exp_datetime - datetime.now()).total_seconds() if exp_datetime else None
+
+    return {
+        "success": True,
+        "message": "Token is valid and properly sent",
+        "steam_id": payload.get("sub"),
+        "expires_at": exp_datetime.isoformat() if exp_datetime else None,
+        "expires_in_seconds": time_until_expiry,
+        "expires_in_minutes": time_until_expiry / 60 if time_until_expiry else None,
+        "is_expired": time_until_expiry < 0 if time_until_expiry else None
+    }
 
 
 @router.get("/{steam_id}", response_model=PlayerWithAnalysis)
@@ -99,6 +140,7 @@ async def trigger_player_analysis(
 
 
 @router.get("/", response_model=List[PlayerSchema])
+@router.get("", response_model=List[PlayerSchema])  # Support both with and without trailing slash
 async def get_suspicious_players(
     min_suspicion_score: int = Query(60, ge=0, le=100),
     limit: int = Query(50, ge=1, le=100),

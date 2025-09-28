@@ -5,15 +5,15 @@ services:
   test-db:
     image: postgres:17
     environment:
-      POSTGRES_DB: test_statsentry
+      POSTGRES_DB: test_cstatsentry
       POSTGRES_USER: test_user
       POSTGRES_PASSWORD: test_password
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - test_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U test_user -d test_statsentry"]
+      test: ["CMD-SHELL", "pg_isready -U test_user -d test_cstatsentry"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
   test-redis:
     image: redis:8-alpine
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - test_redis_data:/data
     healthcheck:

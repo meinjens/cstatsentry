@@ -278,6 +278,12 @@ def get_user_stats_for_game():
 @app.route('/openid/login', methods=['GET', 'POST'])
 def openid_login():
     """Mock Steam OpenID login endpoint"""
+
+    # If this is a POST request with verification data, handle verification
+    if request.method == 'POST':
+        return openid_verify()
+
+    # GET request - show login page
     return_to = request.args.get('openid.return_to', 'http://localhost:3000/auth/steam/callback')
 
     # Simulate OpenID redirect with test user
@@ -338,8 +344,15 @@ def openid_login():
 @app.route('/openid', methods=['POST'])
 def openid_verify():
     """Mock OpenID verification endpoint"""
-    # Always return successful verification for testing
-    return "is_valid:true\n"
+    # Check if this is a verification request
+    mode = request.form.get('openid.mode') or request.values.get('openid.mode')
+
+    if mode == 'check_authentication':
+        # Mock successful verification response
+        return "ns:http://specs.openid.net/auth/2.0\nis_valid:true\n"
+
+    # For other modes, return an error
+    return "ns:http://specs.openid.net/auth/2.0\nis_valid:false\n"
 
 
 @app.route('/openid/id/<steam_id>')

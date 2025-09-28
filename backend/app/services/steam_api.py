@@ -7,7 +7,7 @@ from app.core.config import settings
 class SteamAPIClient:
     def __init__(self):
         self.api_key = settings.STEAM_API_KEY
-        self.base_url = "https://api.steampowered.com"
+        self.base_url = settings.STEAM_API_URL
         self.client = httpx.AsyncClient(timeout=30.0)
 
     async def get_player_summaries(self, steam_ids: List[str]) -> Dict[str, Any]:
@@ -168,5 +168,7 @@ class SteamDataExtractor:
         return owned_games["response"].get("game_count", 0)
 
 
-# Global instance
-steam_api = SteamAPIClient()
+# Factory function instead of global instance
+def get_steam_api_client() -> SteamAPIClient:
+    """Get a new Steam API client instance"""
+    return SteamAPIClient()
