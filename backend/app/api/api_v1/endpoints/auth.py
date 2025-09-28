@@ -30,7 +30,9 @@ async def steam_login():
 async def steam_callback(
     db: Session = Depends(get_db),
     # Steam OpenID parameters
+    openid_ns: str = Query(None, alias="openid.ns"),
     openid_mode: str = Query(..., alias="openid.mode"),
+    openid_op_endpoint: str = Query(None, alias="openid.op_endpoint"),
     openid_claimed_id: str = Query(None, alias="openid.claimed_id"),
     openid_identity: str = Query(None, alias="openid.identity"),
     openid_return_to: str = Query(None, alias="openid.return_to"),
@@ -46,6 +48,10 @@ async def steam_callback(
         "openid.mode": openid_mode,
     }
 
+    if openid_ns:
+        openid_params["openid.ns"] = openid_ns
+    if openid_op_endpoint:
+        openid_params["openid.op_endpoint"] = openid_op_endpoint
     if openid_claimed_id:
         openid_params["openid.claimed_id"] = openid_claimed_id
     if openid_identity:
