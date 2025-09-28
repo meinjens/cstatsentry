@@ -172,3 +172,7 @@ class SteamDataExtractor:
 def get_steam_api_client() -> SteamAPIClient:
     """Get a new Steam API client instance"""
     return SteamAPIClient()
+
+
+# Backward compatibility for tests - deprecated, use get_steam_api_client() instead
+steam_api = SteamAPIClient()

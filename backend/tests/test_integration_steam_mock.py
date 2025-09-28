@@ -74,13 +74,21 @@ class TestSteamAuthIntegration:
 
         # Patch the Steam auth and API services to use mock
         with patch('app.services.steam_auth.steam_auth.verify_auth_response') as mock_verify, \
-             patch('app.services.steam_api.steam_api.get_player_summaries') as mock_get_player:
+             patch('app.services.steam_api.get_steam_api_client') as mock_get_client:
 
             # Mock successful verification
             mock_verify.return_value = "76561198123456789"
 
-            # Mock player data response
-            mock_get_player.return_value = {
+            # Create a mock client with context manager support
+            class MockSteamAPIClient:
+                async def __aenter__(self):
+                    return self
+                async def __aexit__(self, exc_type, exc_val, exc_tb):
+                    pass
+                async def get_player_summaries(self, steam_ids):
+                    return mock_player_data
+
+            mock_player_data = {
                 "response": {
                     "players": [{
                         "steamid": "76561198123456789",
@@ -94,6 +102,8 @@ class TestSteamAuthIntegration:
                     }]
                 }
             }
+
+            mock_get_client.return_value = MockSteamAPIClient()
 
             # Step 3: Process callback
             response = client.get("/api/v1/auth/steam/callback", params=callback_params, follow_redirects=False)
@@ -269,14 +279,14 @@ class TestEndToEndUserJourney:
     """End-to-end integration tests simulating full user journeys"""
 
     @pytest.mark.asyncio
-    async def test_new_user_registration_and_analysis(self, client: TestClient, db_session, mock_steam_config, mock_steam_service_health):
+    async def test_new_user_registration_and_analysis(self, client: TestClient, db_session):
         """Test complete user journey from registration to analysis"""
 
-        # Step 1: User logs in via Steam
+        # Step 1: User logs in via Steam (using supported Steam ID)
         callback_params = {
             "openid.mode": "id_res",
-            "openid.claimed_id": "https://steamcommunity.com/openid/id/76561198999888777",
-            "openid.identity": "https://steamcommunity.com/openid/id/76561198999888777",
+            "openid.claimed_id": "https://steamcommunity.com/openid/id/76561198123456789",
+            "openid.identity": "https://steamcommunity.com/openid/id/76561198123456789",
             "openid.return_to": "http://localhost:3000/auth/steam/callback",
             "openid.response_nonce": "2023-01-01T00:00:00ZrKzYzQ",
             "openid.assoc_handle": "test_handle_123",
@@ -285,20 +295,33 @@ class TestEndToEndUserJourney:
         }
 
         with patch('app.services.steam_auth.steam_auth.verify_auth_response') as mock_verify, \
-             patch('app.services.steam_api.steam_api.get_player_summaries') as mock_get_player:
+             patch('app.api.api_v1.endpoints.auth.get_steam_api_client') as mock_get_client:
 
-            mock_verify.return_value = "76561198999888777"
-            mock_get_player.return_value = {
-                "response": {
-                    "players": [{
-                        "steamid": "76561198999888777",
-                        "personaname": "EndToEndTestUser",
-                        "avatar": "https://example.com/e2e_avatar.jpg",
-                        "avatarmedium": "https://example.com/e2e_avatar_medium.jpg",
-                        "avatarfull": "https://example.com/e2e_avatar_full.jpg",
-                    }]
-                }
-            }
+            mock_verify.return_value = "76561198123456789"
+
+            # Create a mock client with context manager support
+            class MockSteamAPIClient:
+                async def __aenter__(self):
+                    return self
+                async def __aexit__(self, exc_type, exc_val, exc_tb):
+                    pass
+                async def get_player_summaries(self, steam_ids):
+                    return {
+                        "response": {
+                            "players": [{
+                                "steamid": "76561198123456789",
+                                "personaname": "EndToEndTestUser",
+                                "avatar": "https://example.com/e2e_avatar.jpg",
+                                "avatarmedium": "https://example.com/e2e_avatar_medium.jpg",
+                                "avatarfull": "https://example.com/e2e_avatar_full.jpg",
+                                "personastate": 1,
+                                "communityvisibilitystate": 3,
+                                "profilestate": 1
+                            }]
+                        }
+                    }
+
+            mock_get_client.return_value = MockSteamAPIClient()
 
             # User authenticates
             response = client.get("/api/v1/auth/steam/callback", params=callback_params, follow_redirects=False)
