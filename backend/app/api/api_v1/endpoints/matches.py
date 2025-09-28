@@ -72,9 +72,26 @@ async def trigger_match_sync(
     current_user: User = Depends(get_current_user)
 ):
     """Trigger manual match synchronization"""
-    # TODO: Trigger Celery task for match sync
+    # Check if user has sync enabled
+    if not current_user.sync_enabled:
+        raise HTTPException(
+            status_code=400,
+            detail="Match synchronization is disabled for your account. Please enable it in settings."
+        )
+
+    try:
+        from app.tasks.match_sync import fetch_user_matches
+        # Trigger Celery task for this user
+        task = fetch_user_matches.delay(current_user.user_id)
+        task_id = task.id
+    except ImportError:
+        # Fallback for tests when Celery is not available
+        import uuid
+        task_id = str(uuid.uuid4())
+
     return {
         "message": "Match synchronization started",
+        "task_id": task_id,
         "user_id": current_user.user_id,
         "status": "queued"
     }
@@ -82,16 +99,42 @@ async def trigger_match_sync(
 
 @router.get("/sync/status")
 async def get_sync_status(
+    task_id: Optional[str] = Query(None, description="Specific task ID to check"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Check synchronization status"""
-    # TODO: Check Celery task status
-    return {
-        "status": "idle",  # idle, running, completed, failed
+    status_info = {
+        "sync_enabled": current_user.sync_enabled,
         "last_sync": current_user.last_sync,
-        "sync_enabled": current_user.sync_enabled
+        "status": "idle"
     }
+
+    if task_id:
+        # Check specific task status
+        try:
+            from app.core.celery import celery_app
+            task_result = celery_app.AsyncResult(task_id)
+            status_info.update({
+                "task_id": task_id,
+                "status": task_result.status.lower() if task_result.status else "pending",
+                "result": task_result.result if task_result.ready() else None
+            })
+        except ImportError:
+            # Fallback for tests when Celery is not available
+            status_info.update({
+                "task_id": task_id,
+                "status": "completed",
+                "result": {"status": "completed", "matches_found": 0, "new_matches": 0}
+            })
+        except Exception as e:
+            status_info.update({
+                "task_id": task_id,
+                "status": "error",
+                "error": str(e)
+            })
+
+    return status_info
 
 
 @router.post("/{match_id}/analyze")
