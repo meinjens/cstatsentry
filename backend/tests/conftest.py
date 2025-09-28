@@ -160,7 +160,7 @@ def mock_steam_auth_success(monkeypatch, sample_steam_player_data):
         return client
 
     monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
-    monkeypatch.setattr("app.services.steam_api.get_steam_api_client", mock_get_steam_api_client)
+    monkeypatch.setattr("app.api.api_v1.endpoints.auth.get_steam_api_client", mock_get_steam_api_client)
 
 
 @pytest.fixture

@@ -63,7 +63,7 @@ class TestAuthEndpoints:
             return MockSteamAPIClient()
 
         monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
-        monkeypatch.setattr("app.services.steam_api.get_steam_api_client", mock_get_steam_api_client)
+        monkeypatch.setattr("app.api.api_v1.endpoints.auth.get_steam_api_client", mock_get_steam_api_client)
 
         response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
         assert response.status_code == 307  # Redirect response
@@ -94,7 +94,7 @@ class TestAuthEndpoints:
             return MockSteamAPIClient()
 
         monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
-        monkeypatch.setattr("app.services.steam_api.get_steam_api_client", mock_get_steam_api_client)
+        monkeypatch.setattr("app.api.api_v1.endpoints.auth.get_steam_api_client", mock_get_steam_api_client)
 
         response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
         assert response.status_code == 307  # Redirect response
