@@ -7,7 +7,7 @@ from app.crud.player import (
     create_or_update_player_ban,
     create_player_analysis
 )
-from app.services.steam_api import steam_api, SteamDataExtractor
+from app.services.steam_api import get_steam_api_client, SteamDataExtractor
 from datetime import datetime, timedelta
 import logging
 
@@ -35,7 +35,7 @@ def analyze_player_profile(self, steam_id: str, force_update: bool = False, anal
             import asyncio
 
             async def fetch_steam_data():
-                async with steam_api:
+                async with get_steam_api_client() as steam_api:
                     # Get player summary
                     summary_data = await steam_api.get_player_summaries([steam_id])
 

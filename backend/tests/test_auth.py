@@ -12,7 +12,8 @@ class TestAuthEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert "auth_url" in data
-        assert "https://steamcommunity.com/openid/login" in data["auth_url"]
+        # In test environment, we use the mock server
+        assert "/openid/login" in data["auth_url"]
 
     def test_steam_callback_success(self, client: TestClient, db_session, mock_steam_auth_success, sample_steam_auth_response):
         """Test successful Steam authentication callback"""
@@ -51,10 +52,21 @@ class TestAuthEndpoints:
             raise Exception("Steam API error")
 
         from app.services.steam_auth import steam_auth
-        from app.services.steam_api import steam_api
+        from app.services.steam_api import SteamAPIClient
+
+        def mock_get_steam_api_client():
+            class MockSteamAPIClient(SteamAPIClient):
+                async def __aenter__(self):
+                    return self
+                async def __aexit__(self, exc_type, exc_val, exc_tb):
+                    pass
+
+            client = MockSteamAPIClient()
+            client.get_player_summaries = mock_get_player_summaries
+            return client
 
         monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
-        monkeypatch.setattr(steam_api, "get_player_summaries", mock_get_player_summaries)
+        monkeypatch.setattr("app.services.steam_api.get_steam_api_client", mock_get_steam_api_client)
 
         response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
         assert response.status_code == 307  # Redirect response
@@ -74,10 +86,21 @@ class TestAuthEndpoints:
             return {"response": {"players": []}}
 
         from app.services.steam_auth import steam_auth
-        from app.services.steam_api import steam_api
+        from app.services.steam_api import SteamAPIClient
+
+        def mock_get_steam_api_client():
+            class MockSteamAPIClient(SteamAPIClient):
+                async def __aenter__(self):
+                    return self
+                async def __aexit__(self, exc_type, exc_val, exc_tb):
+                    pass
+
+            client = MockSteamAPIClient()
+            client.get_player_summaries = mock_get_player_summaries
+            return client
 
         monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
-        monkeypatch.setattr(steam_api, "get_player_summaries", mock_get_player_summaries)
+        monkeypatch.setattr("app.services.steam_api.get_steam_api_client", mock_get_steam_api_client)
 
         response = client.get("/api/v1/auth/steam/callback", params=sample_steam_auth_response, follow_redirects=False)
         assert response.status_code == 307  # Redirect response

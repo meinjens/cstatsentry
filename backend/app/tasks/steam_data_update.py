@@ -3,7 +3,7 @@ from app.core.celery import celery_app
 from app.db.session import SessionLocal
 from app.models.player import Player, PlayerBan
 from app.crud.player import create_or_update_player_ban
-from app.services.steam_api import steam_api, SteamDataExtractor
+from app.services.steam_api import get_steam_api_client, SteamDataExtractor
 from datetime import datetime, timedelta
 import logging
 
@@ -40,7 +40,7 @@ def update_ban_status_batch(self, batch_size: int = 100):
         import asyncio
 
         async def process_batch(batch_ids):
-            async with steam_api:
+            async with get_steam_api_client() as steam_api:
                 ban_data = await steam_api.get_player_bans(batch_ids)
                 return ban_data
 
@@ -140,7 +140,7 @@ def update_player_profiles_batch(self, batch_size: int = 50):
         import asyncio
 
         async def process_profile_batch(batch_ids):
-            async with steam_api:
+            async with get_steam_api_client() as steam_api:
                 summary_data = await steam_api.get_player_summaries(batch_ids)
                 return summary_data
 

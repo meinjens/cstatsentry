@@ -143,10 +143,24 @@ def mock_steam_auth_success(monkeypatch, sample_steam_player_data):
         return sample_steam_player_data
 
     from app.services.steam_auth import steam_auth
-    from app.services.steam_api import steam_api
+    from app.services.steam_api import get_steam_api_client
+
+    # Mock the factory function to return a client with mocked methods
+    def mock_get_steam_api_client():
+        from app.services.steam_api import SteamAPIClient
+
+        class MockSteamAPIClient(SteamAPIClient):
+            async def __aenter__(self):
+                return self
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                pass
+
+        client = MockSteamAPIClient()
+        client.get_player_summaries = mock_get_player_summaries
+        return client
 
     monkeypatch.setattr(steam_auth, "verify_auth_response", mock_verify_auth_response)
-    monkeypatch.setattr(steam_api, "get_player_summaries", mock_get_player_summaries)
+    monkeypatch.setattr("app.services.steam_api.get_steam_api_client", mock_get_steam_api_client)
 
 
 @pytest.fixture
