@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     # Steam OAuth
     STEAM_OPENID_URL: str = "https://steamcommunity.com/openid"
     FRONTEND_URL: str = "http://localhost:3000"
+    BACKEND_URL: str = "http://localhost:8000"
 
     # Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/1"

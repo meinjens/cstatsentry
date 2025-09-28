@@ -11,7 +11,7 @@ class SteamOpenIDAuth:
     def __init__(self):
         self.openid_url = settings.STEAM_OPENID_URL
         self.realm = settings.FRONTEND_URL
-        self.return_to = f"{settings.FRONTEND_URL}/auth/steam/callback"
+        self.return_to = f"{settings.BACKEND_URL}/api/v1/auth/steam/callback"
 
     def get_auth_url(self) -> str:
         """Generate Steam OpenID authentication URL"""
