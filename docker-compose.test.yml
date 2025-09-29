@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Test Database
   test-db:
-    image: postgres:17
+    image: postgres:18
     environment:
       POSTGRES_DB: test_cstatsentry
       POSTGRES_USER: test_user
