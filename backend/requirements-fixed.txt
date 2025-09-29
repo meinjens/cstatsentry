@@ -6,7 +6,7 @@ psycopg2-binary==2.9.10
 redis==6.4.0
 celery==5.5.3
 pydantic==2.11.9
-pydantic-settings==2.10.1
+pydantic-settings==2.11.0
 python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.20
