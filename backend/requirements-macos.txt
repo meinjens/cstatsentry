@@ -4,7 +4,7 @@ sqlalchemy==2.0.23
 alembic==1.12.1
 # Use psycopg2 instead of psycopg2-binary on macOS
 psycopg2==2.9.9
-redis==5.0.1
+redis==6.4.0
 celery==5.5.3
 pydantic==2.11.9
 pydantic-settings==2.10.1
