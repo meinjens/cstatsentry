@@ -16,86 +16,125 @@ def validate_match_id(match_id: str) -> bool:
     # Check for basic format requirements
     if not match_id or len(match_id) < 5:
         return False
-    if len(match_id) > 50:  # Too long
+    if len(match_id) > 100:  # Too long
         return False
-    if not match_id.startswith("CSGO-"):
-        return False
+    # Accept both CSGO- format and Leetify format (e.g., 3-match-2025-09-28-001)
     return True
 
 
 def get_match_details(db: Session, match_id: str) -> Optional[MatchDetails]:
     """
     Get complete match details including players and statistics
-
-    This is a minimal implementation for TDD - will be improved in refactor phase
     """
 
     # Validate match ID format
     if not validate_match_id(match_id):
         return None
 
-    # For TDD: Return mock data that satisfies the test requirements
-    # In real implementation, this would query the database
+    # Get match from database
+    match = get_match_by_id(db, match_id)
+    if not match:
+        return None
 
-    if match_id == "CSGO-Test-Match-12345":
-        # Mock data that makes the tests pass
-        mock_players = [
-            MatchPlayerSchema(
-                steam_id="76561198123456789",
-                team=1,
-                kills=25,
-                deaths=15,
-                assists=8,
-                headshot_percentage=45.5,
-                damage_dealt=2500
-            ),
-            MatchPlayerSchema(
-                steam_id="76561198987654321",
-                team=2,
-                kills=18,
-                deaths=20,
-                assists=12,
-                headshot_percentage=38.2,
-                damage_dealt=2100
-            )
-        ]
+    # Get all players for this match
+    match_players = get_match_players(db, match_id)
 
-        team1_stats = TeamStats(
-            total_kills=75,
-            total_deaths=68,
-            rounds_won=16,
-            eco_rounds_won=3
+    # Import Player model to get player names
+    from app.models.player import Player
+
+    # Convert to schema format with player names
+    players_schema = []
+    team1_kills = 0
+    team1_deaths = 0
+    team2_kills = 0
+    team2_deaths = 0
+
+    for mp in match_players:
+        # Get player info
+        player = db.query(Player).filter(Player.steam_id == mp.steam_id).first()
+        player_name = player.current_name if player else "Unknown"
+
+        # Create player schema
+        player_schema = MatchPlayerSchema(
+            steam_id=mp.steam_id,
+            player_name=player_name,
+            team=mp.team,
+            kills=mp.kills,
+            deaths=mp.deaths,
+            assists=mp.assists,
+            headshot_percentage=mp.headshot_percentage,
+            damage_dealt=0  # Not stored yet in MatchPlayer
         )
+        players_schema.append(player_schema)
 
-        team2_stats = TeamStats(
-            total_kills=68,
-            total_deaths=75,
-            rounds_won=14,
-            eco_rounds_won=2
-        )
+        # Aggregate team stats
+        if mp.team == 1:
+            team1_kills += mp.kills
+            team1_deaths += mp.deaths
+        else:
+            team2_kills += mp.kills
+            team2_deaths += mp.deaths
 
-        return MatchDetails(
-            match_id=match_id,
-            map_name="de_dust2",
-            game_mode="competitive",
-            started_at=datetime.now().replace(hour=14, minute=0, second=0),
-            finished_at=datetime.now().replace(hour=15, minute=30, second=0),
-            duration_minutes=90,
-            score_team1=16,
-            score_team2=14,
-            winner=1,
-            players=mock_players,
-            average_kd_ratio=1.2,
-            total_rounds=30,
-            mvp_player="76561198123456789",
-            team_stats={
-                "team1": team1_stats,
-                "team2": team2_stats
-            }
-        )
+    # Calculate team stats
+    team1_stats = TeamStats(
+        total_kills=team1_kills,
+        total_deaths=team1_deaths,
+        rounds_won=match.score_team1 or 0,
+        eco_rounds_won=0  # Not tracked yet
+    )
 
-    # Match not found
-    return None
+    team2_stats = TeamStats(
+        total_kills=team2_kills,
+        total_deaths=team2_deaths,
+        rounds_won=match.score_team2 or 0,
+        eco_rounds_won=0  # Not tracked yet
+    )
+
+    # Determine winner
+    winner = None
+    if match.score_team1 and match.score_team2:
+        if match.score_team1 > match.score_team2:
+            winner = 1
+        elif match.score_team2 > match.score_team1:
+            winner = 2
+
+    # Calculate average K/D ratio
+    total_kills = team1_kills + team2_kills
+    total_deaths = team1_deaths + team2_deaths
+    average_kd_ratio = total_kills / max(total_deaths, 1)
+
+    # Find MVP (player with most kills)
+    mvp_player = None
+    max_kills = 0
+    for p in match_players:
+        if p.kills > max_kills:
+            max_kills = p.kills
+            mvp_player = p.steam_id
+
+    # Calculate duration
+    duration_minutes = None
+    started_at = match.match_date
+    finished_at = None
+
+    return MatchDetails(
+        match_id=match.match_id,
+        map_name=match.map or "Unknown",
+        game_mode="competitive",
+        started_at=started_at,
+        finished_at=finished_at,
+        duration_minutes=duration_minutes,
+        score_team1=match.score_team1 or 0,
+        score_team2=match.score_team2 or 0,
+        winner=winner,
+        players=players_schema,
+        average_kd_ratio=round(average_kd_ratio, 2),
+        total_rounds=(match.score_team1 or 0) + (match.score_team2 or 0),
+        mvp_player=mvp_player,
+        team_stats={
+            "team1": team1_stats,
+            "team2": team2_stats
+        }
+    )
 
 
 def get_match_details_with_player_focus(

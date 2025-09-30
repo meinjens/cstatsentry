@@ -1,9 +1,12 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { matchesAPI } from '../services/api'
 import { Target, Clock, RefreshCw } from 'lucide-react'
 
 const Matches: React.FC = () => {
+  const navigate = useNavigate()
+
   const { data: matchesData, isLoading } = useQuery({
     queryKey: ['matches'],
     queryFn: () => matchesAPI.getMatches(50, 0)
@@ -133,7 +136,10 @@ const Matches: React.FC = () => {
                       {match.processed ? 'Processed' : 'Pending'}
                     </div>
 
-                    <button className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm">
+                    <button
+                      onClick={() => navigate(`/matches/${match.match_id}`)}
+                      className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
+                    >
                       View Details
                     </button>
                   </div>

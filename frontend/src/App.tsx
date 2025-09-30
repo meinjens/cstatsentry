@@ -7,6 +7,7 @@ import AuthCallback from './pages/AuthCallback'
 import Players from './pages/Players'
 import PlayerDetail from './pages/PlayerDetail'
 import Matches from './pages/Matches'
+import MatchDetails from './pages/MatchDetails'
 import Settings from './pages/Settings'
 import Test from './pages/Test'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -37,6 +38,11 @@ function App() {
           <Route path="matches" element={
             <ProtectedRoute>
               <Matches />
+            </ProtectedRoute>
+          } />
+          <Route path="matches/:matchId" element={
+            <ProtectedRoute>
+              <MatchDetails />
             </ProtectedRoute>
           } />
           <Route path="settings" element={

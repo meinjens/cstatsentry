@@ -10,6 +10,7 @@ from datetime import datetime
 class MatchPlayer(BaseModel):
     """Player performance in a match"""
     steam_id: str
+    player_name: Optional[str] = None
     team: int
     kills: int
     deaths: int
@@ -69,18 +70,18 @@ class MatchDetails(BaseModel):
     match_id: str
     map_name: str
     game_mode: str
-    started_at: datetime
-    finished_at: datetime
-    duration_minutes: int
+    started_at: Optional[datetime] = None
+    finished_at: Optional[datetime] = None
+    duration_minutes: Optional[int] = None
     score_team1: int
     score_team2: int
-    winner: int
+    winner: Optional[int] = None
     players: List[MatchPlayer]
 
     # Performance metrics
     average_kd_ratio: float
     total_rounds: int
-    mvp_player: str
+    mvp_player: Optional[str] = None
 
     # Team statistics
     team_stats: Dict[str, TeamStats]
