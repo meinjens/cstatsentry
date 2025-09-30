@@ -2,13 +2,14 @@ import React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { matchesAPI } from '../services/api'
-import { ArrowLeft, Trophy, Users, Target, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Trophy, Users, Target } from 'lucide-react'
+import { MatchDetails as MatchDetailsType, MatchPlayer } from '../types'
 
 const MatchDetails: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>()
   const navigate = useNavigate()
 
-  const { data: match, isLoading, error } = useQuery({
+  const { data: match, isLoading, error } = useQuery<MatchDetailsType>({
     queryKey: ['match', matchId],
     queryFn: () => matchesAPI.getMatch(matchId!),
     enabled: !!matchId
@@ -40,14 +41,14 @@ const MatchDetails: React.FC = () => {
   }
 
   // Separate players by team
-  const team1Players = match.players.filter((p: any) => p.team === 1)
-  const team2Players = match.players.filter((p: any) => p.team === 2)
+  const team1Players = match.players.filter((p: MatchPlayer) => p.team === 1)
+  const team2Players = match.players.filter((p: MatchPlayer) => p.team === 2)
 
-  const getPlayerKD = (player: any) => {
+  const getPlayerKD = (player: MatchPlayer) => {
     return player.deaths > 0 ? (player.kills / player.deaths).toFixed(2) : player.kills.toFixed(2)
   }
 
-  const renderPlayerRow = (player: any, isWinningTeam: boolean) => {
+  const renderPlayerRow = (player: MatchPlayer) => {
     const isMVP = player.steam_id === match.mvp_player
 
     return (
@@ -130,7 +131,7 @@ const MatchDetails: React.FC = () => {
             <div className="text-sm text-gray-600 mb-2">Match MVP</div>
             <div className="flex items-center justify-center text-xl font-bold text-yellow-600">
               <Trophy className="h-6 w-6 mr-2" />
-              {match.players.find((p: any) => p.steam_id === match.mvp_player)?.player_name || 'Unknown'}
+              {match.players.find((p: MatchPlayer) => p.steam_id === match.mvp_player)?.player_name || 'Unknown'}
             </div>
           </div>
         </div>
@@ -165,7 +166,7 @@ const MatchDetails: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {team1Players.map((player: any) => renderPlayerRow(player, team1Won))}
+              {team1Players.map((player: MatchPlayer) => renderPlayerRow(player))}
             </tbody>
           </table>
         </div>
@@ -200,7 +201,7 @@ const MatchDetails: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {team2Players.map((player: any) => renderPlayerRow(player, team2Won))}
+              {team2Players.map((player: MatchPlayer) => renderPlayerRow(player))}
             </tbody>
           </table>
         </div>

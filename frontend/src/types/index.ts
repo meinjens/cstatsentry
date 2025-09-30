@@ -113,3 +113,35 @@ export interface DashboardSummary {
   new_detections_today: number
   last_sync: string | null
 }
+
+export interface MatchPlayer {
+  steam_id: string
+  player_name: string | null
+  team: number
+  kills: number
+  deaths: number
+  assists: number
+  headshot_percentage: number
+}
+
+export interface TeamStats {
+  total_kills: number
+  total_deaths: number
+}
+
+export interface MatchDetails {
+  match_id: string
+  map_name: string
+  started_at: string | null
+  winner: number
+  score_team1: number
+  score_team2: number
+  total_rounds: number
+  average_kd_ratio: string
+  mvp_player: string | null
+  players: MatchPlayer[]
+  team_stats: {
+    team1: TeamStats
+    team2: TeamStats
+  }
+}
