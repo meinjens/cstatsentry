@@ -33,6 +33,8 @@ const Login: React.FC = () => {
             avatar_url: authResponse.avatar_url,
             last_sync: null,
             sync_enabled: true,
+            steam_auth_code: null,
+            last_match_sharecode: null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })

@@ -9,7 +9,8 @@ import type {
   DashboardSummary,
   MonthlyMatchData,
   DetectionTrend,
-  FlagStatistic
+  FlagStatistic,
+  MatchDetails
 } from '../types'
 
 const api = axios.create({
@@ -134,7 +135,7 @@ export const matchesAPI = {
     return response.data
   },
 
-  getMatch: async (matchId: string): Promise<Match> => {
+  getMatch: async (matchId: string): Promise<MatchDetails> => {
     const response = await api.get(`/matches/${matchId}`)
     return response.data
   },
