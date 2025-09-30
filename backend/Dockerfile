@@ -2,12 +2,13 @@ FROM python:3.13-alpine
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies for Alpine
+RUN apk add --no-cache \
     gcc \
-    libpq-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+    musl-dev \
+    postgresql-dev \
+    linux-headers \
+    curl
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
@@ -16,9 +17,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create non-root user
-RUN adduser --disabled-password --gecos '' appuser
-RUN chown -R appuser:appuser /app
+# Create non-root user for Alpine
+RUN adduser -D -g '' appuser && \
+    chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000

@@ -1,10 +1,12 @@
 FROM python:3.13-alpine
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies for Alpine
+RUN apk add --no-cache \
     curl \
     gcc \
-    && rm -rf /var/lib/apt/lists/*
+    musl-dev \
+    postgresql-dev \
+    linux-headers
 
 WORKDIR /app
 
@@ -22,9 +24,9 @@ RUN pip install --no-cache-dir \
 # Copy application code
 COPY . .
 
-# Create a non-root user
-RUN useradd --create-home --shell /bin/bash app \
-    && chown -R app:app /app
+# Create a non-root user for Alpine
+RUN adduser -D -s /bin/sh app && \
+    chown -R app:app /app
 USER app
 
 # Default command for tests
