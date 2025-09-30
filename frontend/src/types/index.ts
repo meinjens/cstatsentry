@@ -5,6 +5,8 @@ export interface User {
   avatar_url: string | null
   last_sync: string | null
   sync_enabled: boolean
+  steam_auth_code: string | null
+  last_match_sharecode: string | null
   created_at: string
   updated_at: string
 }

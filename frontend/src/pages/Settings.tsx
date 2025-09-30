@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { usersAPI } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
-import { Save, User, Shield, Database } from 'lucide-react'
+import { Save, User, Shield, Database, Key } from 'lucide-react'
 
 const Settings: React.FC = () => {
   const { user, refreshUser } = useAuth()
@@ -10,7 +10,9 @@ const Settings: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     steam_name: user?.steam_name || '',
-    sync_enabled: user?.sync_enabled ?? true
+    sync_enabled: user?.sync_enabled ?? true,
+    steam_auth_code: user?.steam_auth_code || '',
+    last_match_sharecode: user?.last_match_sharecode || ''
   })
 
   const updateProfileMutation = useMutation({
@@ -29,7 +31,9 @@ const Settings: React.FC = () => {
   const handleCancel = () => {
     setFormData({
       steam_name: user?.steam_name || '',
-      sync_enabled: user?.sync_enabled ?? true
+      sync_enabled: user?.sync_enabled ?? true,
+      steam_auth_code: user?.steam_auth_code || '',
+      last_match_sharecode: user?.last_match_sharecode || ''
     })
     setIsEditing(false)
   }
@@ -194,6 +198,107 @@ const Settings: React.FC = () => {
                     <p className="text-sm text-blue-700 mt-1">
                       We only access publicly available match data and Steam profile information.
                       Your private data remains private.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Steam Match History Settings */}
+          <div className="bg-white rounded-lg shadow mt-6">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                <Key className="h-5 w-5 mr-2" />
+                Steam Match History Access
+              </h3>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="p-4 bg-blue-50 rounded-md mb-4">
+                <h5 className="text-sm font-medium text-blue-800 mb-2">How to get your Steam credentials</h5>
+                <ol className="text-sm text-blue-700 space-y-2 list-decimal list-inside">
+                  <li>Open CS2 and access the developer console (~)</li>
+                  <li>Type <code className="bg-blue-100 px-1 rounded">csgo_match_share_auth</code> to get your auth code</li>
+                  <li>Play a match or check recent matches for a sharecode (format: CSGO-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx)</li>
+                  <li>Enter both values below to enable Steam match history sync</li>
+                </ol>
+              </div>
+
+              {/* Steam Auth Code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Steam Auth Code
+                </label>
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={formData.steam_auth_code}
+                      onChange={(e) => setFormData({ ...formData, steam_auth_code: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+                      placeholder="XXXX-XXXXX-XXXX"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Get this code from CS2 console with: csgo_match_share_auth
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-gray-900 font-mono text-sm">
+                      {user?.steam_auth_code ? '••••-•••••-••••' : 'Not configured'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {user?.steam_auth_code
+                        ? 'Auth code is set and hidden for security'
+                        : 'No auth code configured'
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Last Match Sharecode */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Latest Match Sharecode
+                </label>
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={formData.last_match_sharecode}
+                      onChange={(e) => setFormData({ ...formData, last_match_sharecode: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+                      placeholder="CSGO-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Format: CSGO-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-gray-900 font-mono text-sm">
+                      {user?.last_match_sharecode || 'Not configured'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {user?.last_match_sharecode
+                        ? 'Match history will start from this match'
+                        : 'No starting sharecode configured'
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 bg-yellow-50 rounded-md">
+                <div className="flex">
+                  <Shield className="h-5 w-5 text-yellow-400 mr-2" />
+                  <div>
+                    <h5 className="text-sm font-medium text-yellow-800">Important Note</h5>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      These credentials are required for accessing your CS2 match history via Steam's official API.
+                      Without them, we can only use third-party data sources like Leetify.
                     </p>
                   </div>
                 </div>

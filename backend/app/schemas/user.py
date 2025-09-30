@@ -31,11 +31,15 @@ class UserUpdate(BaseModel):
     steam_name: Optional[str] = None
     avatar_url: Optional[str] = None
     sync_enabled: Optional[bool] = None
+    steam_auth_code: Optional[str] = None
+    last_match_sharecode: Optional[str] = None
 
 
 class User(UserBase):
     user_id: int
     last_sync: Optional[datetime] = None
+    steam_auth_code: Optional[str] = None
+    last_match_sharecode: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

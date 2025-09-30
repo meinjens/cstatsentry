@@ -15,7 +15,7 @@ from app.services.leetify_api import get_leetify_api_client, LeetifyDataExtracto
 logger = logging.getLogger(__name__)
 
 
-async def process_match_players_async(db: Session, match_details: dict, match_id: str, user_steam_id: str):
+async def process_match_players_async(db: Session, match_details: dict, match_id: str, user_steam_id: str, user_id: int):
     """Process and create player records for a match"""
     try:
         # Extract players from match details
@@ -216,7 +216,7 @@ def fetch_user_matches(self, user_id: int, limit: int = 10):
                             logger.info(f"Created match {match_id} for user {user_id}")
 
                             # Process players in this match
-                            await process_match_players_async(db, match_details, match_id, user.steam_id)
+                            await process_match_players_async(db, match_details, match_id, user.steam_id, user_id)
 
                         except Exception as e:
                             logger.error(f"Failed to create match {match_id}: {e}")

@@ -11,7 +11,7 @@ fi
 
 # Start Docker services
 echo "🐳 Starting Docker services..."
-docker-compose up -d db redis
+docker-compose -f docker-compose.test.yml up -d
 
 # Wait for services to be ready
 echo "⏳ Waiting for database to be ready..."
@@ -75,3 +75,7 @@ echo "🌐 Access points:"
 echo "   Frontend: http://localhost:3000"
 echo "   API: http://localhost:8000"
 echo "   API Docs: http://localhost:8000/docs"
+echo "   Mock Steam API: http://localhost:5001"
+echo ""
+echo "💡 The mock service provides Steam API and Leetify API endpoints for testing."
+echo "   Use API key 'test-key' for Steam API requests."

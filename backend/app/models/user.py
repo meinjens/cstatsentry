@@ -12,6 +12,11 @@ class User(Base):
     avatar_url = Column(String)
     last_sync = Column(DateTime)
     sync_enabled = Column(Boolean, default=True)
+
+    # Steam Match Sharing Codes for accessing match history
+    steam_auth_code = Column(String(255))  # Authentication code from CS2
+    last_match_sharecode = Column(String(50))  # Last processed match sharecode (CSGO-xxxxx-xxxxx-...)
+
     created_at = Column(DateTime, server_default=func.current_timestamp())
     updated_at = Column(DateTime, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
 

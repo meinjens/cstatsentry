@@ -14,8 +14,8 @@ class TestMatchDetailsEndpoint:
     """TDD: Match details retrieval endpoint"""
 
     @pytest.mark.unit
-    def test_get_match_details_success(self, authenticated_client: TestClient):
-        """Test retrieving match details - should fail initially"""
+    def test_get_match_details_success(self, authenticated_client: TestClient, test_match):
+        """Test retrieving match details"""
         match_id = "CSGO-Test-Match-12345"
         response = authenticated_client.get(f"/api/v1/matches/{match_id}")
 
@@ -69,7 +69,7 @@ class TestMatchDetailsEndpoint:
         assert response.status_code == 401
 
     @pytest.mark.unit
-    def test_get_match_details_with_performance_metrics(self, authenticated_client: TestClient):
+    def test_get_match_details_with_performance_metrics(self, authenticated_client: TestClient, test_match):
         """Test match details include performance metrics"""
         match_id = "CSGO-Test-Match-12345"
         response = authenticated_client.get(f"/api/v1/matches/{match_id}")
@@ -88,7 +88,7 @@ class TestMatchDetailsEndpoint:
         assert data["total_rounds"] > 0
 
     @pytest.mark.unit
-    def test_get_match_details_with_team_statistics(self, authenticated_client: TestClient):
+    def test_get_match_details_with_team_statistics(self, authenticated_client: TestClient, test_match):
         """Test match details include team-level statistics"""
         match_id = "CSGO-Test-Match-12345"
         response = authenticated_client.get(f"/api/v1/matches/{match_id}")
@@ -115,7 +115,7 @@ class TestMatchDetailsWithFiltering:
     """TDD: Match details with filtering options"""
 
     @pytest.mark.unit
-    def test_get_match_details_filter_by_player(self, authenticated_client: TestClient):
+    def test_get_match_details_filter_by_player(self, authenticated_client: TestClient, test_match):
         """Test filtering match details by specific player"""
         match_id = "CSGO-Test-Match-12345"
         steam_id = "76561198123456789"
@@ -135,7 +135,7 @@ class TestMatchDetailsWithFiltering:
         assert "round_by_round_performance" in focused_player
 
     @pytest.mark.unit
-    def test_get_match_details_include_round_data(self, authenticated_client: TestClient):
+    def test_get_match_details_include_round_data(self, authenticated_client: TestClient, test_match):
         """Test including detailed round-by-round data"""
         match_id = "CSGO-Test-Match-12345"
 
@@ -164,7 +164,7 @@ class TestMatchDetailsPerformance:
     """TDD: Match details performance and caching"""
 
     @pytest.mark.unit
-    def test_match_details_response_time(self, authenticated_client: TestClient):
+    def test_match_details_response_time(self, authenticated_client: TestClient, test_match):
         """Test match details endpoint responds quickly"""
         match_id = "CSGO-Test-Match-12345"
 
@@ -179,7 +179,7 @@ class TestMatchDetailsPerformance:
         assert response_time < 1.0  # Should respond in under 1 second
 
     @pytest.mark.unit
-    def test_match_details_caching_headers(self, authenticated_client: TestClient):
+    def test_match_details_caching_headers(self, authenticated_client: TestClient, test_match):
         """Test match details include appropriate caching headers"""
         match_id = "CSGO-Test-Match-12345"
         response = authenticated_client.get(f"/api/v1/matches/{match_id}")

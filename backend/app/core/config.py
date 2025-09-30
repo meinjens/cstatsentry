@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     STEAM_API_KEY: str = "your-steam-api-key-here"
     LEETIFY_API_KEY: Optional[str] = None
 
+    # Match Data Provider - 'leetify' or 'steam'
+    MATCH_DATA_PROVIDER: str = "leetify"
+
     # Security - Set defaults for development, override in production
     SECRET_KEY: str = "your-secret-key-here-change-in-production"
     ALGORITHM: str = "HS256"

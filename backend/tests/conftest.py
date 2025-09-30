@@ -9,9 +9,11 @@ from sqlalchemy.pool import StaticPool
 from app.core.security import create_access_token
 from app.crud.player import create_player
 from app.crud.user import create_user
+from app.crud.match import create_match, create_match_player
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from datetime import datetime, timedelta
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -92,6 +94,70 @@ def authenticated_client(client, test_user_token):
         "Authorization": f"Bearer {test_user_token}"
     }
     return client
+
+
+@pytest.fixture
+def test_match(db_session, test_user):
+    """Create a test match with players"""
+    match_data = {
+        "match_id": "CSGO-Test-Match-12345",
+        "user_id": test_user.user_id,
+        "match_date": datetime.utcnow() - timedelta(hours=2),
+        "map": "de_dust2",
+        "score_team1": 16,
+        "score_team2": 14,
+        "user_team": 1,
+        "processed": True
+    }
+    match = create_match(db_session, match_data)
+
+    # Create test players for the match
+    test_players_data = [
+        # Team 1 (winner)
+        {"steam_id": "76561198123456789", "team": 1, "kills": 25, "deaths": 18, "assists": 5, "headshot_percentage": 45.5},
+        {"steam_id": "76561198999999991", "team": 1, "kills": 22, "deaths": 19, "assists": 7, "headshot_percentage": 42.3},
+        {"steam_id": "76561198999999992", "team": 1, "kills": 20, "deaths": 20, "assists": 8, "headshot_percentage": 38.1},
+        {"steam_id": "76561198999999993", "team": 1, "kills": 18, "deaths": 21, "assists": 6, "headshot_percentage": 35.2},
+        {"steam_id": "76561198999999994", "team": 1, "kills": 15, "deaths": 22, "assists": 9, "headshot_percentage": 33.8},
+        # Team 2 (loser)
+        {"steam_id": "76561198999999995", "team": 2, "kills": 24, "deaths": 20, "assists": 4, "headshot_percentage": 48.2},
+        {"steam_id": "76561198999999996", "team": 2, "kills": 21, "deaths": 21, "assists": 6, "headshot_percentage": 41.5},
+        {"steam_id": "76561198999999997", "team": 2, "kills": 19, "deaths": 20, "assists": 7, "headshot_percentage": 39.4},
+        {"steam_id": "76561198999999998", "team": 2, "kills": 17, "deaths": 19, "assists": 5, "headshot_percentage": 36.7},
+        {"steam_id": "76561198999999999", "team": 2, "kills": 14, "deaths": 20, "assists": 8, "headshot_percentage": 32.1},
+    ]
+
+    # Create player records if they don't exist
+    from app.models.player import Player
+    for player_data in test_players_data:
+        existing_player = db_session.query(Player).filter_by(
+            steam_id=player_data['steam_id']
+        ).first()
+
+        if not existing_player and player_data['steam_id'] != test_user.steam_id:
+            player_record = {
+                "steam_id": player_data['steam_id'],
+                "current_name": f"Player_{player_data['steam_id'][-4:]}",
+                "cs2_hours": 100,
+                "total_games_owned": 10
+            }
+            create_player(db_session, player_record)
+
+    # Create match_player records
+    for player_data in test_players_data:
+        match_player_data = {
+            "match_id": match.match_id,
+            "steam_id": player_data["steam_id"],
+            "team": player_data["team"],
+            "kills": player_data["kills"],
+            "deaths": player_data["deaths"],
+            "assists": player_data["assists"],
+            "headshot_percentage": player_data["headshot_percentage"]
+        }
+        create_match_player(db_session, match_player_data)
+
+    db_session.commit()
+    return match
 
 
 @pytest.fixture
