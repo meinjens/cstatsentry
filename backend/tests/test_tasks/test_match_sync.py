@@ -65,7 +65,12 @@ class TestMatchSyncTasks:
         # Store user_id before function call to avoid detached instance
         user_id = test_user_for_tasks.user_id
 
-        with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks):
+        # Mock asyncio.run to prevent actual API calls
+        async def mock_fetch_matches_async():
+            pass
+
+        with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
+             patch('app.tasks.match_sync.asyncio.run', return_value=None):
             result = fetch_user_matches(user_id)
 
             assert result["status"] == "completed"
@@ -109,7 +114,8 @@ class TestMatchSyncTasks:
         # Store user_id before function call to avoid detached instance
         user_id = test_user_for_tasks.user_id
 
-        with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks):
+        with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
+             patch('app.tasks.match_sync.asyncio.run', return_value=None):
             result = fetch_user_matches(user_id, limit=20)
 
             assert result["status"] == "completed"
