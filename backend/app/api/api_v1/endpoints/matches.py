@@ -19,14 +19,13 @@ from app.schemas.match import MatchDetails
 router = APIRouter()
 
 
-@router.get("/")
-async def get_user_matches_endpoint(
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+async def _get_user_matches(
+    limit: int,
+    offset: int,
+    db: Session,
+    current_user: User
 ):
-    """Get user's match history"""
+    """Shared logic for getting user's match history"""
     matches = get_user_matches(db, current_user.user_id, limit, offset)
 
     # Convert to response format
@@ -48,6 +47,28 @@ async def get_user_matches_endpoint(
         "limit": limit,
         "offset": offset
     }
+
+
+@router.get("/")
+async def get_user_matches_endpoint(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get user's match history"""
+    return await _get_user_matches(limit, offset, db, current_user)
+
+
+@router.get("")
+async def get_user_matches_endpoint_no_slash(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get user's match history (without trailing slash)"""
+    return await _get_user_matches(limit, offset, db, current_user)
 
 
 @router.get("/{match_id}", response_model=MatchDetails)

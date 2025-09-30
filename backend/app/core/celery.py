@@ -26,6 +26,9 @@ celery_app.conf.update(
     result_expires=3600,
     worker_prefetch_multiplier=1,
     task_acks_late=True,
+    # Use threads pool for Python 3.13 compatibility (avoids SIGSEGV with fork)
+    worker_pool="threads",
+    worker_max_tasks_per_child=50,
 )
 
 # Schedule configuration
