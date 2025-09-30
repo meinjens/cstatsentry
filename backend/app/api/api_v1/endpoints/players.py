@@ -142,16 +142,51 @@ async def trigger_player_analysis(
 @router.get("/", response_model=List[PlayerSchema])
 @router.get("", response_model=List[PlayerSchema])  # Support both with and without trailing slash
 async def get_suspicious_players(
-    min_suspicion_score: int = Query(60, ge=0, le=100),
+    min_suspicion_score: int = Query(0, ge=0, le=100, description="Minimum suspicion score (0 returns all players)"),
     limit: int = Query(50, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get list of suspicious players"""
-    # TODO: Implement query for suspicious players
-    # This would join players with their latest analysis
-    # and filter by suspicion score
-    return []
+    """Get list of players, optionally filtered by suspicion score"""
+    from app.models.player import Player, PlayerAnalysis
+    from sqlalchemy import func, and_
+
+    # If min_suspicion_score is 0, return all players
+    if min_suspicion_score == 0:
+        players = db.query(Player).order_by(Player.current_name).limit(limit).all()
+        return players
+
+    # Get latest analysis per player with subquery
+    subquery = (
+        db.query(
+            PlayerAnalysis.steam_id,
+            func.max(PlayerAnalysis.analyzed_at).label('max_date')
+        )
+        .group_by(PlayerAnalysis.steam_id)
+        .subquery()
+    )
+
+    # Join players with their latest analysis
+    players_query = (
+        db.query(Player)
+        .join(
+            PlayerAnalysis,
+            Player.steam_id == PlayerAnalysis.steam_id
+        )
+        .join(
+            subquery,
+            and_(
+                PlayerAnalysis.steam_id == subquery.c.steam_id,
+                PlayerAnalysis.analyzed_at == subquery.c.max_date
+            )
+        )
+        .filter(PlayerAnalysis.suspicion_score >= min_suspicion_score)
+        .order_by(PlayerAnalysis.suspicion_score.desc())
+        .limit(limit)
+    )
+
+    players = players_query.all()
+    return players
 
 
 @router.post("/{steam_id}/update")

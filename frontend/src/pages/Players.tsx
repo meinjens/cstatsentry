@@ -4,7 +4,7 @@ import { playersAPI } from '../services/api'
 import { Search, Filter, AlertTriangle, Shield } from 'lucide-react'
 
 const Players: React.FC = () => {
-  const [minSuspicionScore, setMinSuspicionScore] = useState(60)
+  const [minSuspicionScore, setMinSuspicionScore] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
 
   const { data: suspiciousPlayers, isLoading } = useQuery({
