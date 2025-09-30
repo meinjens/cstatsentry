@@ -79,6 +79,18 @@ export const usersAPI = {
     const response = await api.put('/users/me', data)
     return response.data
   },
+
+  getTeammates: async (limit = 50, minMatches = 1): Promise<Array<{
+    player_steam_id: string
+    player_name: string
+    matches_together: number
+    first_seen: string
+    last_seen: string
+    relationship_type: string
+  }>> => {
+    const response = await api.get(`/users/me/teammates?limit=${limit}&min_matches=${minMatches}`)
+    return response.data
+  },
 }
 
 // Players API

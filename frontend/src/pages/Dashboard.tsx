@@ -1,13 +1,14 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { dashboardAPI } from '../services/api'
+import { dashboardAPI, usersAPI } from '../services/api'
 import {
   Users,
   Shield,
   AlertTriangle,
   Activity,
   Clock,
-  Target
+  Target,
+  UserPlus
 } from 'lucide-react'
 
 const Dashboard: React.FC = () => {
@@ -19,6 +20,11 @@ const Dashboard: React.FC = () => {
   const { data: recentActivity, isLoading: activityLoading } = useQuery({
     queryKey: ['dashboard-recent'],
     queryFn: dashboardAPI.getRecentActivity
+  })
+
+  const { data: teammates } = useQuery({
+    queryKey: ['teammates'],
+    queryFn: () => usersAPI.getTeammates(10, 1)
   })
 
   if (summaryLoading) {
@@ -176,6 +182,45 @@ const Dashboard: React.FC = () => {
               </div>
             ) : (
               <p className="text-gray-500 text-center py-8">No new flags detected</p>
+            )}
+          </div>
+        </div>
+
+        {/* Frequent Teammates */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center">
+              <UserPlus className="h-5 w-5 text-primary-600 mr-2" />
+              <h3 className="text-lg font-medium text-gray-900">Frequent Teammates</h3>
+            </div>
+          </div>
+          <div className="p-6">
+            {teammates && teammates.length > 0 ? (
+              <div className="space-y-3">
+                {teammates.map((teammate) => (
+                  <div key={teammate.player_steam_id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-md">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                        <Users className="h-5 w-5 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{teammate.player_name}</p>
+                        <p className="text-xs text-gray-500">
+                          Last seen: {new Date(teammate.last_seen).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-primary-600">
+                        {teammate.matches_together}
+                      </p>
+                      <p className="text-xs text-gray-500">matches</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">No teammates found yet</p>
             )}
           </div>
         </div>
