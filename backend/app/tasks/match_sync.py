@@ -65,11 +65,48 @@ async def process_match_players_async(db: Session, match_details: dict, match_id
         teammates = LeetifyDataExtractor.extract_teammates(match_details, user_steam_id)
         if teammates:
             logger.info(f"Found {len(teammates)} teammates for user {user_steam_id} in match {match_id}")
-            # TODO: Store teammate relationships in UserTeammate table
+            store_teammate_relationships(db, user_id, teammates)
 
     except Exception as e:
         logger.error(f"Error processing players for match {match_id}: {e}")
         raise
+
+
+def store_teammate_relationships(db: Session, user_id: int, teammate_steam_ids: list):
+    """Store or update teammate relationships"""
+    from app.models.teammate import UserTeammate
+    from datetime import datetime
+
+    for teammate_steam_id in teammate_steam_ids:
+        try:
+            # Check if relationship already exists
+            existing = db.query(UserTeammate).filter(
+                UserTeammate.user_id == user_id,
+                UserTeammate.player_steam_id == teammate_steam_id
+            ).first()
+
+            if existing:
+                # Update existing relationship
+                existing.matches_together += 1
+                existing.last_seen = datetime.utcnow()
+                logger.debug(f"Updated teammate relationship: user {user_id} + {teammate_steam_id} ({existing.matches_together} matches)")
+            else:
+                # Create new relationship
+                teammate = UserTeammate(
+                    user_id=user_id,
+                    player_steam_id=teammate_steam_id,
+                    matches_together=1,
+                    first_seen=datetime.utcnow(),
+                    last_seen=datetime.utcnow(),
+                    relationship_type='teammate'
+                )
+                db.add(teammate)
+                logger.debug(f"Created new teammate relationship: user {user_id} + {teammate_steam_id}")
+
+            db.commit()
+        except Exception as e:
+            logger.error(f"Error storing teammate relationship for {teammate_steam_id}: {e}")
+            db.rollback()
 
 
 @celery_app.task(bind=True)
