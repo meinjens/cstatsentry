@@ -9,6 +9,14 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-statsentry_prod_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=200"  # Increase max connections
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "effective_cache_size=1GB"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-statsentry}"]
       interval: 5s
