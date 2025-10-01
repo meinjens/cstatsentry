@@ -92,7 +92,7 @@ def sync_leetify_matches(self, user_id: int, steam_id: str, limit: int = 10) -> 
     """
     db = SessionLocal()
     try:
-        logger.info(f"[Leetify] Starting match sync for user {user_id} (Steam ID: {steam_id})")
+        logger.info(f"[Leetify] Starting match sync for Steam ID {steam_id}")
 
         matches_found = 0
         new_matches = 0
@@ -104,7 +104,7 @@ def sync_leetify_matches(self, user_id: int, steam_id: str, limit: int = 10) -> 
                     # Get recent games from Leetify API
                     games = await leetify_api.get_recent_games(steam_id, limit=limit)
                     matches_found = len(games)
-                    logger.info(f"[Leetify] Found {matches_found} matches for user {user_id}")
+                    logger.info(f"[Leetify] Found {matches_found} matches for Steam ID {steam_id}")
 
                     for game in games:
                         # Extract match data
@@ -112,7 +112,7 @@ def sync_leetify_matches(self, user_id: int, steam_id: str, limit: int = 10) -> 
                         match_id = match_data["match_id"]
 
                         if not match_id:
-                            logger.warning(f"[Leetify] Skipping match with missing ID for user {user_id}")
+                            logger.warning(f"[Leetify] Skipping match with missing ID for user {steam_id}")
                             continue
 
                         # Check if match already exists
@@ -142,17 +142,17 @@ def sync_leetify_matches(self, user_id: int, steam_id: str, limit: int = 10) -> 
 
                             create_match(db, db_match_data)
                             new_matches += 1
-                            logger.info(f"[Leetify] Created match {match_id} for user {user_id}")
+                            logger.info(f"[Leetify] Created match {match_id} for Steam ID {steam_id}")
 
                             # Process players in this match
                             await process_match_players_async(db, match_details, match_id, steam_id, user_id)
 
                         except Exception as e:
-                            logger.error(f"[Leetify] Failed to create match {match_id}: {e}")
+                            logger.error(f"[Leetify] Failed to create match {match_id} for Steam ID {steam_id}: {e}")
                             db.rollback()
 
                 except Exception as e:
-                    logger.error(f"[Leetify] Failed to fetch matches from API: {e}")
+                    logger.error(f"[Leetify] Failed to fetch matches from API for Steam ID {steam_id}: {e}")
                     db.rollback()
                     raise
 
@@ -168,7 +168,7 @@ def sync_leetify_matches(self, user_id: int, steam_id: str, limit: int = 10) -> 
         }
 
     except Exception as e:
-        logger.error(f"[Leetify] Error syncing matches for user {user_id}: {e}")
+        logger.error(f"[Leetify] Error syncing matches for Steam ID {steam_id}: {e}")
         self.retry(countdown=60, max_retries=3)
     finally:
         db.close()

@@ -201,7 +201,7 @@ def fetch_user_matches(self, user_id: int, limit: int = 10):
         user.last_sync = datetime.utcnow()
         db.commit()
 
-        logger.info(f"[Orchestrator] Multi-source sync completed for user {user_id}: {total_new_matches} new matches from {len(source_results)} sources")
+        logger.info(f"[Orchestrator] Multi-source sync completed for Steam ID {user.steam_id}: {total_new_matches} new matches from {len(source_results)} sources")
 
         return {
             "status": "completed",
@@ -212,7 +212,7 @@ def fetch_user_matches(self, user_id: int, limit: int = 10):
         }
 
     except Exception as e:
-        logger.error(f"[Orchestrator] Error fetching matches for user {user_id}: {e}")
+        logger.error(f"[Orchestrator] Error fetching matches for Steam ID {user.steam_id if 'user' in locals() else user_id}: {e}")
         self.retry(countdown=60, max_retries=3)
     finally:
         db.close()
