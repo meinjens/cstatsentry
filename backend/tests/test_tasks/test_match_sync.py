@@ -59,24 +59,48 @@ class TestMatchSyncTasks:
         assert result["users_processed"] == 0
 
     def test_fetch_user_matches_success(self, db_session, test_user_for_tasks, mock_session_local):
-        """Test successful user match fetch"""
+        """Test successful user match fetch with multi-source orchestration"""
         mock_session_local['match_sync'].return_value = db_session
 
         # Store user_id before function call to avoid detached instance
         user_id = test_user_for_tasks.user_id
 
-        # Mock asyncio.run to prevent actual API calls
-        async def mock_fetch_matches_async():
-            pass
+        # Mock the source-specific task results
+        mock_leetify_result = {
+            "status": "completed",
+            "source": "leetify",
+            "user_id": user_id,
+            "matches_found": 5,
+            "new_matches": 3
+        }
+        mock_steam_result = {
+            "status": "completed",
+            "source": "steam",
+            "user_id": user_id,
+            "matches_found": 3,
+            "new_matches": 2
+        }
 
+        # Mock the Celery group execution and task imports
         with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
-             patch('app.tasks.match_sync.asyncio.run', return_value=None):
-            result = fetch_user_matches(user_id)
+             patch('celery.group') as mock_group, \
+             patch('app.tasks.match_sync_leetify.sync_leetify_matches') as mock_leetify, \
+             patch('sys.modules', {'aiohttp': MagicMock(), 'app.services.steam_match_history': MagicMock()}):
 
-            assert result["status"] == "completed"
-            assert "user_id" in result
-            assert "matches_found" in result
-            assert "new_matches" in result
+            # Mock sync_steam_matches task after aiohttp is mocked
+            with patch('app.tasks.match_sync_steam.sync_steam_matches') as mock_steam:
+                # Mock the group result
+                mock_result = MagicMock()
+                mock_result.get.return_value = [mock_leetify_result, mock_steam_result]
+                mock_group.return_value.apply_async.return_value = mock_result
+
+                result = fetch_user_matches(user_id)
+
+                assert result["status"] == "completed"
+                assert "user_id" in result
+                assert result["total_matches_found"] == 8
+                assert result["total_new_matches"] == 5
+                assert len(result["sources"]) == 2
 
     def test_fetch_user_matches_user_not_found(self, db_session, mock_session_local):
         """Test fetch matches for non-existent user"""
@@ -114,12 +138,40 @@ class TestMatchSyncTasks:
         # Store user_id before function call to avoid detached instance
         user_id = test_user_for_tasks.user_id
 
-        with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
-             patch('app.tasks.match_sync.asyncio.run', return_value=None):
-            result = fetch_user_matches(user_id, limit=20)
+        # Mock the source-specific task results
+        mock_leetify_result = {
+            "status": "completed",
+            "source": "leetify",
+            "user_id": user_id,
+            "matches_found": 10,
+            "new_matches": 5
+        }
+        mock_steam_result = {
+            "status": "completed",
+            "source": "steam",
+            "user_id": user_id,
+            "matches_found": 8,
+            "new_matches": 4
+        }
 
-            assert result["status"] == "completed"
-            assert "user_id" in result
+        with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
+             patch('celery.group') as mock_group, \
+             patch('app.tasks.match_sync_leetify.sync_leetify_matches') as mock_leetify, \
+             patch('sys.modules', {'aiohttp': MagicMock(), 'app.services.steam_match_history': MagicMock()}):
+
+            # Mock sync_steam_matches task after aiohttp is mocked
+            with patch('app.tasks.match_sync_steam.sync_steam_matches') as mock_steam:
+                # Mock the group result
+                mock_result = MagicMock()
+                mock_result.get.return_value = [mock_leetify_result, mock_steam_result]
+                mock_group.return_value.apply_async.return_value = mock_result
+
+                result = fetch_user_matches(user_id, limit=20)
+
+                assert result["status"] == "completed"
+                assert "user_id" in result
+                assert result["total_matches_found"] == 18
+                assert result["total_new_matches"] == 9
 
     def test_process_match_data_success(self, db_session, mock_session_local):
         """Test successful match data processing"""

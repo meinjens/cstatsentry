@@ -140,7 +140,12 @@ def fetch_new_matches_for_all_users(self):
 
 @celery_app.task(bind=True)
 def fetch_user_matches(self, user_id: int, limit: int = 10):
-    """Fetch recent matches for a specific user"""
+    """
+    Orchestrator task to fetch matches from all available sources in parallel
+
+    This task coordinates multiple data sources (Leetify, Steam, etc.) and
+    triggers them as separate async Celery tasks for parallel execution.
+    """
     db = SessionLocal()
     try:
         user = get_user_by_id(db, user_id)
@@ -152,96 +157,62 @@ def fetch_user_matches(self, user_id: int, limit: int = 10):
             logger.info(f"Sync disabled for user {user_id}")
             return {"status": "skipped", "message": "Sync disabled"}
 
-        logger.info(f"Fetching matches for user {user_id} (Steam ID: {user.steam_id})")
+        logger.info(f"[Orchestrator] Starting multi-source match sync for user {user_id} (Steam ID: {user.steam_id})")
 
-        # Fetch matches from Leetify API using asyncio
-        matches_found = 0
-        new_matches = 0
+        # Import source-specific tasks
+        from app.tasks.match_sync_leetify import sync_leetify_matches
+        from app.tasks.match_sync_steam import sync_steam_matches
 
-        async def fetch_matches_async():
-            nonlocal matches_found, new_matches
-            async with get_leetify_api_client() as leetify_api:
-                try:
-                    # Get recent games from Leetify API
-                    games = await leetify_api.get_recent_games(user.steam_id, limit=10)
-                    matches_found = len(games)
-                    logger.info(f"Found {matches_found} matches for user {user_id}")
+        # Trigger all sources in parallel using Celery's group
+        from celery import group
 
-                    for game in games:
-                        # Extract match data
-                        match_data = LeetifyDataExtractor.extract_match_data(game)
-                        match_id = match_data["match_id"]
+        # Create task group for parallel execution
+        job = group([
+            sync_leetify_matches.s(user_id, user.steam_id, limit),
+            sync_steam_matches.s(user_id, user.steam_id, limit),
+            # Add more sources here as needed:
+            # sync_faceit_matches.s(user_id, user.steam_id, limit),
+            # sync_esea_matches.s(user_id, user.steam_id, limit),
+        ])
 
-                        if not match_id:
-                            logger.warning(f"Skipping match with missing ID for user {user_id}")
-                            continue
+        # Execute all tasks in parallel
+        result = job.apply_async()
 
-                        # Check if match already exists
-                        existing_match = get_match_by_id(db, match_id)
-                        if existing_match:
-                            logger.debug(f"Match {match_id} already exists, skipping")
-                            continue
+        # Wait for all tasks to complete (with timeout)
+        results = result.get(timeout=300)  # 5 minute timeout
 
-                        # Get detailed match information
-                        match_details = await leetify_api.get_game_details(match_id, user.steam_id)
-                        if not match_details:
-                            logger.warning(f"Could not get details for match {match_id}")
-                            continue
+        # Aggregate results from all sources
+        total_matches_found = 0
+        total_new_matches = 0
+        source_results = []
 
-                        # Create match record
-                        try:
-                            # Update match_data with additional details and user info
-                            match_data.update({
-                                "user_id": user_id,
-                                "match_date": match_data.get("started_at") or datetime.utcnow(),
-                                "map": match_data.get("map_name"),
-                                "leetify_match_id": match_id,
-                                "processed": False
-                            })
-
-                            # Remove fields that don't exist in the Match model
-                            db_match_data = {
-                                "match_id": match_id,
-                                "user_id": match_data["user_id"],
-                                "match_date": match_data["match_date"],
-                                "map": match_data.get("map"),
-                                "score_team1": match_data.get("score_team1"),
-                                "score_team2": match_data.get("score_team2"),
-                                "leetify_match_id": match_data["leetify_match_id"],
-                                "processed": match_data["processed"]
-                            }
-
-                            created_match = create_match(db, db_match_data)
-                            new_matches += 1
-                            logger.info(f"Created match {match_id} for user {user_id}")
-
-                            # Process players in this match
-                            await process_match_players_async(db, match_details, match_id, user.steam_id, user_id)
-
-                        except Exception as e:
-                            logger.error(f"Failed to create match {match_id}: {e}")
-                            db.rollback()
-
-                except Exception as e:
-                    logger.error(f"Failed to fetch matches from Leetify API: {e}")
-                    db.rollback()
-
-        # Run the async function
-        asyncio.run(fetch_matches_async())
+        for source_result in results:
+            if source_result and source_result.get("status") == "completed":
+                total_matches_found += source_result.get("matches_found", 0)
+                total_new_matches += source_result.get("new_matches", 0)
+                source_results.append({
+                    "source": source_result.get("source"),
+                    "matches_found": source_result.get("matches_found", 0),
+                    "new_matches": source_result.get("new_matches", 0)
+                })
+                logger.info(f"[Orchestrator] {source_result.get('source')}: {source_result.get('new_matches', 0)} new matches")
 
         # Update last_sync timestamp
         user.last_sync = datetime.utcnow()
         db.commit()
 
+        logger.info(f"[Orchestrator] Multi-source sync completed for user {user_id}: {total_new_matches} new matches from {len(source_results)} sources")
+
         return {
             "status": "completed",
             "user_id": user_id,
-            "matches_found": matches_found,
-            "new_matches": new_matches
+            "total_matches_found": total_matches_found,
+            "total_new_matches": total_new_matches,
+            "sources": source_results
         }
 
     except Exception as e:
-        logger.error(f"Error fetching matches for user {user_id}: {e}")
+        logger.error(f"[Orchestrator] Error fetching matches for user {user_id}: {e}")
         self.retry(countdown=60, max_retries=3)
     finally:
         db.close()
