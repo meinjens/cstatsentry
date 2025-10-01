@@ -1,11 +1,12 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { matchesAPI } from '../services/api'
 import { Target, Clock, RefreshCw } from 'lucide-react'
 
 const Matches: React.FC = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const { data: matchesData, isLoading } = useQuery({
     queryKey: ['matches'],
@@ -18,13 +19,16 @@ const Matches: React.FC = () => {
     refetchInterval: 5000 // Refresh every 5 seconds
   })
 
-  const handleTriggerSync = async () => {
-    try {
-      await matchesAPI.triggerSync()
-      // Refresh sync status
-    } catch (error) {
-      console.error('Failed to trigger sync:', error)
+  const syncMutation = useMutation({
+    mutationFn: matchesAPI.triggerSync,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sync-status'] })
+      queryClient.invalidateQueries({ queryKey: ['matches'] })
     }
+  })
+
+  const handleTriggerSync = () => {
+    syncMutation.mutate()
   }
 
   const getStatusColor = (status: string) => {

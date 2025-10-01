@@ -1,6 +1,6 @@
-import React from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { dashboardAPI, usersAPI } from '../services/api'
+import React, { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { dashboardAPI, usersAPI, matchesAPI } from '../services/api'
 import {
   Users,
   Shield,
@@ -8,10 +8,14 @@ import {
   Activity,
   Clock,
   Target,
-  UserPlus
+  UserPlus,
+  RefreshCw
 } from 'lucide-react'
 
 const Dashboard: React.FC = () => {
+  const queryClient = useQueryClient()
+  const [isSyncing, setIsSyncing] = useState(false)
+
   const { data: summary, isLoading: summaryLoading } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: dashboardAPI.getSummary
@@ -26,6 +30,25 @@ const Dashboard: React.FC = () => {
     queryKey: ['teammates'],
     queryFn: () => usersAPI.getTeammates(10, 1)
   })
+
+  const syncMutation = useMutation({
+    mutationFn: matchesAPI.triggerSync,
+    onSuccess: () => {
+      // Refresh dashboard data
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-recent'] })
+      setTimeout(() => setIsSyncing(false), 2000)
+    },
+    onError: (error) => {
+      console.error('Sync failed:', error)
+      setIsSyncing(false)
+    }
+  })
+
+  const handleSync = () => {
+    setIsSyncing(true)
+    syncMutation.mutate()
+  }
 
   if (summaryLoading) {
     return (
@@ -111,8 +134,13 @@ const Dashboard: React.FC = () => {
               {formatLastSync(summary?.last_sync || null)}
             </span>
           </div>
-          <button className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
-            Sync Now
+          <button
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync Now'}
           </button>
         </div>
       </div>

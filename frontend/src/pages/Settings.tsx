@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { usersAPI } from '../services/api'
+import { usersAPI, matchesAPI } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
 import { Save, User, Shield, Database, Key } from 'lucide-react'
 
@@ -21,6 +21,15 @@ const Settings: React.FC = () => {
       queryClient.setQueryData(['user-profile'], updatedUser)
       refreshUser()
       setIsEditing(false)
+    }
+  })
+
+  const syncMutation = useMutation({
+    mutationFn: matchesAPI.triggerSync,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sync-status'] })
+      queryClient.invalidateQueries({ queryKey: ['matches'] })
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] })
     }
   })
 
@@ -334,8 +343,12 @@ const Settings: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
 
             <div className="space-y-3">
-              <button className="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
-                Sync Now
+              <button
+                onClick={() => syncMutation.mutate()}
+                disabled={syncMutation.isPending}
+                className="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors"
+              >
+                {syncMutation.isPending ? 'Syncing...' : 'Sync Now'}
               </button>
               <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
                 Export Data
