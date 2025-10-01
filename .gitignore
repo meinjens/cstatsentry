@@ -81,6 +81,7 @@ frontend/dist/
 
 # Celery
 celerybeat-schedule
+celerybeat-schedule-*
 celerybeat.pid
 
 # Pytest

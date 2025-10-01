@@ -6,16 +6,14 @@ Handles fetching matches from Steam API using sharecode iteration
 import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional
-
-from sqlalchemy.orm import Session
+from typing import Dict, Any
 
 from app.core.celery import celery_app
+from app.core.config import settings
 from app.crud.match import create_match, get_match_by_id
 from app.crud.user import get_user_by_id
 from app.db.session import SessionLocal
 from app.services.steam_match_history import SteamMatchHistoryService
-from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

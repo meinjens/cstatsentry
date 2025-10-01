@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from app.core.celery import celery_app
 from app.crud.match import create_match, get_match_by_id, create_match_player
 from app.crud.player import get_player_by_steam_id, create_player, update_player
-from app.crud.user import get_user_by_id
 from app.db.session import SessionLocal
 from app.services.leetify_api import get_leetify_api_client, LeetifyDataExtractor
 
