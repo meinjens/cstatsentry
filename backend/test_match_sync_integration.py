@@ -7,6 +7,7 @@ import asyncio
 import os
 import sys
 from datetime import datetime
+import pytest
 
 # Add the backend directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -160,6 +161,7 @@ async def simulate_match_sync(user_id: int):
         db.close()
 
 
+@pytest.mark.asyncio
 async def test_match_sync():
     """Test the complete match sync workflow"""
     print("🧪 Testing Match Sync Workflow")

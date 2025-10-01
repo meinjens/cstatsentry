@@ -6,6 +6,7 @@ Test Leetify API integration with mock server
 import asyncio
 import sys
 import os
+import pytest
 
 # Add the backend directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -13,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from app.services.leetify_api import get_leetify_api_client, LeetifyDataExtractor
 
 
+@pytest.mark.asyncio
 async def test_leetify_api():
     """Test Leetify API client with mock server"""
     print("🧪 Testing Leetify API Integration")

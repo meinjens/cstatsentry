@@ -82,13 +82,21 @@ class TestMatchSyncTasks:
         }
 
         # Mock the Celery group execution and task imports
-        with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
-             patch('celery.group') as mock_group, \
-             patch('app.tasks.match_sync_leetify.sync_leetify_matches') as mock_leetify, \
-             patch('sys.modules', {'aiohttp': MagicMock(), 'app.services.steam_match_history': MagicMock()}):
+        import sys
 
-            # Mock sync_steam_matches task after aiohttp is mocked
-            with patch('app.tasks.match_sync_steam.sync_steam_matches') as mock_steam:
+        # Save original sys.modules state
+        original_modules = sys.modules.copy()
+
+        # Mock missing modules
+        sys.modules['aiohttp'] = MagicMock()
+        sys.modules['app.services.steam_match_history'] = MagicMock()
+
+        try:
+            with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
+                 patch('celery.group') as mock_group, \
+                 patch('app.tasks.match_sync_leetify.sync_leetify_matches') as mock_leetify, \
+                 patch('app.tasks.match_sync_steam.sync_steam_matches') as mock_steam:
+
                 # Mock the group result
                 mock_result = MagicMock()
                 mock_result.get.return_value = [mock_leetify_result, mock_steam_result]
@@ -101,6 +109,10 @@ class TestMatchSyncTasks:
                 assert result["total_matches_found"] == 8
                 assert result["total_new_matches"] == 5
                 assert len(result["sources"]) == 2
+        finally:
+            # Restore original sys.modules
+            sys.modules.clear()
+            sys.modules.update(original_modules)
 
     def test_fetch_user_matches_user_not_found(self, db_session, mock_session_local):
         """Test fetch matches for non-existent user"""
@@ -154,13 +166,21 @@ class TestMatchSyncTasks:
             "new_matches": 4
         }
 
-        with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
-             patch('celery.group') as mock_group, \
-             patch('app.tasks.match_sync_leetify.sync_leetify_matches') as mock_leetify, \
-             patch('sys.modules', {'aiohttp': MagicMock(), 'app.services.steam_match_history': MagicMock()}):
+        import sys
 
-            # Mock sync_steam_matches task after aiohttp is mocked
-            with patch('app.tasks.match_sync_steam.sync_steam_matches') as mock_steam:
+        # Save original sys.modules state
+        original_modules = sys.modules.copy()
+
+        # Mock missing modules
+        sys.modules['aiohttp'] = MagicMock()
+        sys.modules['app.services.steam_match_history'] = MagicMock()
+
+        try:
+            with patch('app.crud.user.get_user_by_id', return_value=test_user_for_tasks), \
+                 patch('celery.group') as mock_group, \
+                 patch('app.tasks.match_sync_leetify.sync_leetify_matches') as mock_leetify, \
+                 patch('app.tasks.match_sync_steam.sync_steam_matches') as mock_steam:
+
                 # Mock the group result
                 mock_result = MagicMock()
                 mock_result.get.return_value = [mock_leetify_result, mock_steam_result]
@@ -172,6 +192,10 @@ class TestMatchSyncTasks:
                 assert "user_id" in result
                 assert result["total_matches_found"] == 18
                 assert result["total_new_matches"] == 9
+        finally:
+            # Restore original sys.modules
+            sys.modules.clear()
+            sys.modules.update(original_modules)
 
     def test_process_match_data_success(self, db_session, mock_session_local):
         """Test successful match data processing"""

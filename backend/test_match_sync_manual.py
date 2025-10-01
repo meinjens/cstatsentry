@@ -5,10 +5,13 @@ Manual test für Match Sync Funktionalität
 
 import asyncio
 import httpx
+import pytest
 
 # Test-Setup
 BASE_URL = "http://localhost:8000"  # Ändern falls nötig
 
+@pytest.mark.asyncio
+@pytest.mark.manual  # Skip this test in automated runs
 async def test_match_sync():
     """Test Match Sync manuell"""
     print("🧪 Testing Match Sync Manually")
