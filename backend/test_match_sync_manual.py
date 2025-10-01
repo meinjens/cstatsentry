@@ -11,7 +11,7 @@ import pytest
 BASE_URL = "http://localhost:8000"  # Ändern falls nötig
 
 @pytest.mark.asyncio
-@pytest.mark.manual  # Skip this test in automated runs
+@pytest.mark.skip(reason="Manual test - requires user input. Run with: pytest test_match_sync_manual.py -s")
 async def test_match_sync():
     """Test Match Sync manuell"""
     print("🧪 Testing Match Sync Manually")
