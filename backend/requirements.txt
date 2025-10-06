@@ -16,7 +16,7 @@ click-didyoumean==0.3.1
 click-plugins==1.1.1.2
 click-repl==0.3.0
 coverage==7.10.6
-cryptography==46.0.1
+cryptography==46.0.2
 dparse==0.6.4
 ecdsa==0.19.1
 fastapi==0.117.1
