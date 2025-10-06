@@ -5,7 +5,7 @@ annotated-types==0.7.0
 anyio==4.11.0
 Authlib==1.6.5
 bcrypt==5.0.0
-billiard==4.2.1
+billiard==4.2.2
 celery==5.5.3
 certifi==2025.8.3
 flower==2.0.1
