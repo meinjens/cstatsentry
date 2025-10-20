@@ -19,7 +19,7 @@ coverage==7.10.6
 cryptography==46.0.1
 dparse==0.6.4
 ecdsa==0.19.1
-fastapi==0.117.1
+fastapi==0.119.1
 filelock==3.19.1
 h11==0.16.0
 httpcore==1.0.9
