@@ -7,6 +7,22 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
 [![Swarm](https://img.shields.io/badge/Docker%20Swarm-Supported-green)](https://docs.docker.com/engine/swarm/)
 
+## 📑 Inhaltsverzeichnis
+
+- [✨ Features](#-features)
+- [🏗️ Architecture](#️-architecture)
+- [🚀 Quick Start](#-quick-start)
+- [🔧 Tech Stack](#-tech-stack)
+- [📊 Detection System](#-detection-system)
+- [📁 Project Structure](#-project-structure)
+- [⚙️ Configuration](#️-configuration)
+- [🧪 Development](#-development)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [⚠️ Disclaimer](#️-disclaimer)
+- [📖 Documentation](#-documentation)
+- [🆘 Support](#-support)
+
 ## ✨ Features
 
 - 🔐 **Steam OAuth Authentication** - Secure login via Steam OpenID
@@ -162,9 +178,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 StatSentry is designed for educational and analytical purposes. It only accesses publicly available Steam profile data and does not interact with CS2 game files or memory. Always follow Steam's Terms of Service and use responsibly.
 
+## 📖 Documentation
+
+- 🏗️ [Architecture Guide](docs/ARCHITECTURE.md) - Detailed system architecture and design patterns
+- ✅ [Features & TODO List](docs/FEATURES_TODO.md) - Complete feature overview and roadmap
+- 🧪 [TDD Guide](docs/TDD_GUIDE.md) - Test-driven development workflow
+- 🔗 [Integration Testing](docs/INTEGRATION_TESTING.md) - Testing with mock services
+- ⚙️ [Setup Guide](docs/SETUP.md) - Detailed configuration instructions
+- 🔌 [API Documentation](docs/API.md) - REST API reference
+
+## 🎯 Related Projects
+
+- **[Replay Hunter](https://github.com/meinjens/replay-hunter)** - CS2 Demo Download Service (formerly part of this project)
+
 ## 🆘 Support
 
-- 📖 [Documentation](docs/)
 - 🐛 [Report Issues](https://github.com/meinjens/cstatsentry/issues)
 - 💬 [Discussions](https://github.com/meinjens/cstatsentry/discussions)
 

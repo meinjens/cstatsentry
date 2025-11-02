@@ -1,0 +1,386 @@
+{
+  "v": 10,
+  "name": "Steam Web API",
+  "folders": [
+    {
+      "v": "15",
+      "name": "ISteamNews",
+      "requests": [
+        {
+          "v": "15",
+          "name": "GetNewsForApp",
+          "method": "GET",
+          "endpoint": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v0002/",
+          "params": [
+            {
+              "key": "appid",
+              "value": "730",
+              "active": true,
+              "description": "AppID of the game you want news for (e.g., 730 for CS:GO)"
+            },
+            {
+              "key": "count",
+              "value": "3",
+              "active": true,
+              "description": "How many news entries you want to get returned"
+            },
+            {
+              "key": "maxlength",
+              "value": "300",
+              "active": true,
+              "description": "Maximum length of each news entry"
+            },
+            {
+              "key": "format",
+              "value": "json",
+              "active": true,
+              "description": "Output format (json, xml, vdf)"
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    },
+    {
+      "v": "15",
+      "name": "ISteamUser",
+      "requests": [
+        {
+          "v": "15",
+          "name": "GetPlayerSummaries",
+          "method": "GET",
+          "endpoint": "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/",
+          "params": [
+            {
+              "key": "key",
+              "value": "YOUR_API_KEY_HERE",
+              "active": true,
+              "description": "Steam Web API Key"
+            },
+            {
+              "key": "steamids",
+              "value": "76561197960435530",
+              "active": true,
+              "description": "Comma-delimited list of 64 bit Steam IDs"
+            },
+            {
+              "key": "format",
+              "value": "json",
+              "active": true,
+              "description": "Output format (json, xml, vdf)"
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "GetFriendList",
+          "method": "GET",
+          "endpoint": "https://api.steampowered.com/ISteamUser/GetFriendList/v0001/",
+          "params": [
+            {
+              "key": "key",
+              "value": "YOUR_API_KEY_HERE",
+              "active": true,
+              "description": "Steam Web API Key"
+            },
+            {
+              "key": "steamid",
+              "value": "76561197960435530",
+              "active": true,
+              "description": "64 bit Steam ID to return friend list for"
+            },
+            {
+              "key": "relationship",
+              "value": "friend",
+              "active": true,
+              "description": "Relationship filter (friend or all)"
+            },
+            {
+              "key": "format",
+              "value": "json",
+              "active": true,
+              "description": "Output format (json, xml, vdf)"
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    },
+    {
+      "v": "15",
+      "name": "ISteamUserStats",
+      "requests": [
+        {
+          "v": "15",
+          "name": "GetGlobalAchievementPercentagesForApp",
+          "method": "GET",
+          "endpoint": "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/",
+          "params": [
+            {
+              "key": "gameid",
+              "value": "730",
+              "active": true,
+              "description": "AppID of the game"
+            },
+            {
+              "key": "format",
+              "value": "json",
+              "active": true,
+              "description": "Output format (json, xml, vdf)"
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "GetPlayerAchievements",
+          "method": "GET",
+          "endpoint": "https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/",
+          "params": [
+            {
+              "key": "key",
+              "value": "YOUR_API_KEY_HERE",
+              "active": true,
+              "description": "Steam Web API Key"
+            },
+            {
+              "key": "steamid",
+              "value": "76561197960435530",
+              "active": true,
+              "description": "64 bit Steam ID to return achievement data for"
+            },
+            {
+              "key": "appid",
+              "value": "730",
+              "active": true,
+              "description": "AppID to get achievements for"
+            },
+            {
+              "key": "l",
+              "value": "en",
+              "active": false,
+              "description": "Language (optional)"
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "GetUserStatsForGame",
+          "method": "GET",
+          "endpoint": "https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/",
+          "params": [
+            {
+              "key": "key",
+              "value": "YOUR_API_KEY_HERE",
+              "active": true,
+              "description": "Steam Web API Key"
+            },
+            {
+              "key": "steamid",
+              "value": "76561197960435530",
+              "active": true,
+              "description": "64 bit Steam ID to return stats for"
+            },
+            {
+              "key": "appid",
+              "value": "730",
+              "active": true,
+              "description": "AppID to get stats for"
+            },
+            {
+              "key": "l",
+              "value": "en",
+              "active": false,
+              "description": "Language (optional)"
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    },
+    {
+      "v": "15",
+      "name": "IPlayerService",
+      "requests": [
+        {
+          "v": "15",
+          "name": "GetOwnedGames",
+          "method": "GET",
+          "endpoint": "https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/",
+          "params": [
+            {
+              "key": "key",
+              "value": "YOUR_API_KEY_HERE",
+              "active": true,
+              "description": "Steam Web API Key"
+            },
+            {
+              "key": "steamid",
+              "value": "76561197960435530",
+              "active": true,
+              "description": "64 bit Steam ID to return games for"
+            },
+            {
+              "key": "include_appinfo",
+              "value": "true",
+              "active": true,
+              "description": "Include game name and logo information"
+            },
+            {
+              "key": "include_played_free_games",
+              "value": "true",
+              "active": true,
+              "description": "Include free games the user has played"
+            },
+            {
+              "key": "format",
+              "value": "json",
+              "active": true,
+              "description": "Output format (json, xml, vdf)"
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "15",
+          "name": "GetRecentlyPlayedGames",
+          "method": "GET",
+          "endpoint": "https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/",
+          "params": [
+            {
+              "key": "key",
+              "value": "YOUR_API_KEY_HERE",
+              "active": true,
+              "description": "Steam Web API Key"
+            },
+            {
+              "key": "steamid",
+              "value": "76561197960435530",
+              "active": true,
+              "description": "64 bit Steam ID to return games for"
+            },
+            {
+              "key": "count",
+              "value": "10",
+              "active": true,
+              "description": "Number of games to return"
+            },
+            {
+              "key": "format",
+              "value": "json",
+              "active": true,
+              "description": "Output format (json, xml, vdf)"
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ]
+    }
+  ],
+  "requests": [],
+  "auth": {
+    "authType": "none",
+    "authActive": true
+  },
+  "headers": [],
+  "variables": [],
+  "_ref_id": "coll_steam_web_api"
+}

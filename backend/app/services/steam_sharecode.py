@@ -37,25 +37,28 @@ def decode_sharecode(sharecode: str) -> Optional[Dict[str, Any]]:
         if len(sharecode) != 25:
             return None
 
-        # Decode from base-57
+        # Decode from base-57 (TS implementation style)
+        chars = list(reversed(sharecode))
         big_int = 0
-        for i, char in enumerate(reversed(sharecode)):
+        for char in chars:
             if char not in DICTIONARY:
                 return None
-            big_int += DICTIONARY.index(char) * (DICTIONARY_LEN ** i)
+            big_int = big_int * DICTIONARY_LEN + DICTIONARY.index(char)
 
-        # Convert to bytes (18 bytes total)
-        # The number is stored as a 144-bit (18 byte) value
-        match_bytes = big_int.to_bytes(18, byteorder='big')
+        # Convert to hex string, pad to 36 hex chars (18 bytes)
+        hex_str = format(big_int, 'x').zfill(36)
 
-        # Parse the structure:
-        # First 8 bytes: matchId (uint64)
-        # Next 8 bytes: outcomeId (uint64)
-        # Last 2 bytes: tokenId (uint16)
+        # Convert hex string to bytes
+        all_bytes = bytes.fromhex(hex_str)
 
-        match_id = struct.unpack('>Q', match_bytes[0:8])[0]
-        outcome_id = struct.unpack('>Q', match_bytes[8:16])[0]
-        token_id = struct.unpack('>H', match_bytes[16:18])[0]
+        # Parse the structure (reverse slices like TS):
+        # First 8 bytes (reversed): matchId (uint64)
+        # Next 8 bytes (reversed): outcomeId/reservationId (uint64)
+        # Last 2 bytes (reversed): tokenId/tvPort (uint16)
+
+        match_id = int.from_bytes(bytes(reversed(all_bytes[0:8])), byteorder='big')
+        outcome_id = int.from_bytes(bytes(reversed(all_bytes[8:16])), byteorder='big')
+        token_id = int.from_bytes(bytes(reversed(all_bytes[16:18])), byteorder='big')
 
         return {
             "matchId": match_id,
@@ -80,33 +83,34 @@ def encode_sharecode(match_id: int, outcome_id: int, token_id: int) -> Optional[
         Sharecode string or None if invalid
     """
     try:
-        # Pack the values into bytes
-        match_bytes = struct.pack('>Q', match_id)
-        outcome_bytes = struct.pack('>Q', outcome_id)
-        token_bytes = struct.pack('>H', token_id)
+        # Convert to hex and reverse bytes (TS style)
+        match_hex = format(match_id, 'x').zfill(16)
+        outcome_hex = format(outcome_id, 'x').zfill(16)
+        token_hex = format(token_id, 'x').zfill(4)
+
+        # Convert hex to bytes and reverse
+        match_bytes = list(reversed(bytes.fromhex(match_hex)))
+        outcome_bytes = list(reversed(bytes.fromhex(outcome_hex)))
+        token_bytes = list(reversed(bytes.fromhex(token_hex)))
 
         # Combine all bytes
         all_bytes = match_bytes + outcome_bytes + token_bytes
 
-        # Convert to big integer
-        big_int = int.from_bytes(all_bytes, byteorder='big')
+        # Convert bytes to hex string
+        hex_str = ''.join(format(b, '02x') for b in all_bytes)
 
-        # Encode to base-57
-        if big_int == 0:
-            return "CSGO-" + DICTIONARY[0] * 25
+        # Convert to BigInt
+        big_int = int(hex_str, 16)
 
-        result = []
-        while big_int > 0:
-            result.append(DICTIONARY[big_int % DICTIONARY_LEN])
+        # Encode to base-57 (TS style)
+        chars = ''
+        for _ in range(25):
+            rem = big_int % DICTIONARY_LEN
+            chars += DICTIONARY[rem]
             big_int //= DICTIONARY_LEN
 
-        # Pad to 25 characters
-        while len(result) < 25:
-            result.append(DICTIONARY[0])
-
-        # Reverse and format with hyphens
-        encoded = ''.join(reversed(result))
-        formatted = f"CSGO-{encoded[0:5]}-{encoded[5:10]}-{encoded[10:15]}-{encoded[15:20]}-{encoded[20:25]}"
+        # Format with hyphens
+        formatted = f"CSGO-{chars[0:5]}-{chars[5:10]}-{chars[10:15]}-{chars[15:20]}-{chars[20:25]}"
 
         return formatted
 
