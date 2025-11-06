@@ -122,8 +122,50 @@ jobs:
       working-directory: ./frontend
       run: pnpm run build
 
+  test-demo-service:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 10
+
+    - name: Get pnpm store directory
+      working-directory: ./demo-service
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+    - name: Setup pnpm cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('demo-service/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+
+    - name: Install dependencies
+      working-directory: ./demo-service
+      run: pnpm install --no-frozen-lockfile
+
+    - name: Generate Prisma Client
+      working-directory: ./demo-service
+      run: pnpm prisma:generate
+
+    - name: Check package
+      working-directory: ./demo-service
+      run: node -e "console.log('Demo service package check passed')"
+
   build-and-push:
-    needs: [test-backend, test-frontend]
+    needs: [test-backend, test-frontend, test-demo-service]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
@@ -170,6 +212,20 @@ jobs:
         tags: ${{ steps.meta-frontend.outputs.tags }}
         labels: ${{ steps.meta-frontend.outputs.labels }}
 
+    - name: Extract metadata (tags, labels) for Demo Service
+      id: meta-demo-service
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/demo-service
+
+    - name: Build and push Demo Service image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./demo-service
+        push: true
+        tags: ${{ steps.meta-demo-service.outputs.tags }}
+        labels: ${{ steps.meta-demo-service.outputs.labels }}
+
   security-scan:
     runs-on: ubuntu-latest
     needs: [build-and-push]
@@ -180,19 +236,24 @@ jobs:
       security-events: write
       actions: read
 
+    strategy:
+      matrix:
+        image: [api, frontend, demo-service]
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Run Trivy vulnerability scanner
+    - name: Run Trivy vulnerability scanner for ${{ matrix.image }}
       uses: aquasecurity/trivy-action@0.28.0
       with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:main
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.image }}:main
         format: 'sarif'
-        output: 'trivy-results.sarif'
+        output: 'trivy-results-${{ matrix.image }}.sarif'
 
     - name: Upload Trivy scan results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
-        sarif_file: 'trivy-results.sarif'
+        sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
+        category: ${{ matrix.image }}
