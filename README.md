@@ -31,6 +31,7 @@
 - 📊 **Real-time Dashboard** - Live updates and comprehensive analytics
 - ⚡ **Background Processing** - Celery-powered asynchronous job system
 - 🔄 **Auto-Sync** - Periodic match synchronization every 30 minutes
+- 🎮 **Demo Download Service** - Integrated CS2 demo file download service via Steam GC
 
 ## 🏗️ Architecture
 
@@ -39,11 +40,16 @@
 │   React SPA     │    │   FastAPI       │    │  PostgreSQL     │
 │   (Frontend)    │◄──►│   (Backend)     │◄──►│  (Database)     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-                              │
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │     Celery      │◄──►│     Redis       │
-                       │ (Background)    │    │   (Cache)       │
-                       └─────────────────┘    └─────────────────┘
+         │                     │                        │
+         │              ┌─────────────────┐    ┌───────┴─────────┐
+         │              │     Celery      │◄──►│     Redis       │
+         │              │ (Background)    │    │   (Cache)       │
+         │              └─────────────────┘    └─────────────────┘
+         │                                             │
+         └─────────────►┌─────────────────┐◄──────────┘
+                        │  Demo Service   │
+                        │   (Node.js)     │
+                        └─────────────────┘
 ```
 
 ## 🚀 Quick Start
@@ -66,6 +72,20 @@ docker-compose up -d
 - Frontend: http://localhost:3000
 - API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
+- Demo Service API: http://localhost:3001
+
+### Demo Service Setup
+
+The demo service requires Steam credentials to download CS2 demo files:
+
+```bash
+# Add to your .env file
+DEMO_SERVICE_STEAM_USERNAME=your_steam_username
+DEMO_SERVICE_STEAM_PASSWORD=your_steam_password
+
+# Initialize demo service database
+./scripts/init-demo-db.sh
+```
 
 ## 🔧 Tech Stack
 
@@ -73,6 +93,7 @@ docker-compose up -d
 |-----------|------------|---------|
 | **Frontend** | React 18 + TypeScript + Tailwind CSS + pnpm | Modern, responsive UI |
 | **Backend** | FastAPI + SQLAlchemy + PostgreSQL | High-performance API |
+| **Demo Service** | Node.js + Express + Prisma + Bull | CS2 demo downloads |
 | **Jobs** | Celery + Redis | Background processing |
 | **Auth** | Steam OpenID + JWT | Secure authentication |
 | **CI/CD** | GitHub Actions | Automated testing & deployment |
@@ -115,6 +136,13 @@ cstatsentry/
 │       ├── pages/           # Application pages
 │       ├── services/        # API integration
 │       └── types/           # TypeScript definitions
+├── 🎮 demo-service/         # CS2 Demo Download Service
+│   ├── src/
+│   │   ├── steam/           # Steam GC integration
+│   │   ├── queue/           # Bull download queue
+│   │   ├── services/        # Demo & webhook services
+│   │   └── routes/          # Express API routes
+│   └── prisma/              # Database schema
 ├── 📚 docs/                 # Documentation
 ├── 🛠️ scripts/              # Utility scripts
 ├── 🐳 .github/              # GitHub Actions workflows

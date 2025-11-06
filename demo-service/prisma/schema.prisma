@@ -1,0 +1,72 @@
+// Prisma Schema for CS2 Demo Download Service
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Demo {
+  id        String   @id @default(uuid())
+  sharecode String   @unique
+
+  // Match Information
+  matchId      String?
+  matchDate    DateTime?
+  map          String?
+  score        String?
+  duration     Int?     // in seconds
+  gameType     Int?
+
+  // Download Information
+  demoUrl      String?
+  filePath     String?
+  fileSize     BigInt?  // in bytes
+
+  // Status
+  status       DemoStatus @default(PENDING)
+  error        String?
+
+  // Players (stored as JSON)
+  players      Json?
+
+  // Timestamps
+  createdAt    DateTime @default(now())
+  downloadedAt DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([matchDate])
+}
+
+model Webhook {
+  id          String   @id @default(uuid())
+  demoId      String
+  url         String
+  status      WebhookStatus @default(PENDING)
+  attempts    Int      @default(0)
+  lastAttempt DateTime?
+  response    String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([status])
+  @@index([demoId])
+}
+
+enum DemoStatus {
+  PENDING
+  FETCHING_URL
+  DOWNLOADING
+  COMPLETED
+  FAILED
+}
+
+enum WebhookStatus {
+  PENDING
+  SENT
+  FAILED
+}

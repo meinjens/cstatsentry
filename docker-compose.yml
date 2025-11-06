@@ -87,6 +87,41 @@ services:
       retries: 3
       start_period: 60s
 
+  demo-service:
+    build: ./demo-service
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://statsentry:password@db:5432/csdemos
+      - REDIS_URL=redis://redis:6379/2
+      - STEAM_USERNAME=${DEMO_SERVICE_STEAM_USERNAME}
+      - STEAM_PASSWORD=${DEMO_SERVICE_STEAM_PASSWORD}
+      - CORS_ORIGIN=http://localhost:3000
+      - DEMOS_PATH=/app/demos
+      - CLEANUP_ENABLED=true
+      - CLEANUP_DAYS=30
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./demo-service:/app
+      - demo_files:/app/demos
+      - demo_logs:/app/logs
+      - /app/node_modules
+    command: pnpm dev
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
 volumes:
   postgres_data:
   redis_data:
+  demo_files:
+  demo_logs:
