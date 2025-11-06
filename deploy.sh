@@ -23,7 +23,7 @@ echo "📋 Environment loaded from .env.prod"
 
 # Build images
 echo "🔨 Building Docker images..."
-docker build -t cstatsentry/api:latest ./backend
+docker build -t cstatsentry/backend-service:latest ./backend
 docker build -t cstatsentry/frontend:latest ./frontend
 
 echo "🗄️  Starting database and Redis..."

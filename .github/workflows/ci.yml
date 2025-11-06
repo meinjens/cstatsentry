@@ -184,19 +184,19 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata (tags, labels) for API
-      id: meta-api
+    - name: Extract metadata (tags, labels) for Backend Service
+      id: meta-backend-service
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend-service
 
-    - name: Build and push API image
+    - name: Build and push Backend Service image
       uses: docker/build-push-action@v5
       with:
         context: ./backend
         push: true
-        tags: ${{ steps.meta-api.outputs.tags }}
-        labels: ${{ steps.meta-api.outputs.labels }}
+        tags: ${{ steps.meta-backend-service.outputs.tags }}
+        labels: ${{ steps.meta-backend-service.outputs.labels }}
 
     - name: Extract metadata (tags, labels) for Frontend
       id: meta-frontend
@@ -238,7 +238,7 @@ jobs:
 
     strategy:
       matrix:
-        image: [api, frontend, demo-service]
+        image: [backend-service, frontend, demo-service]
 
     steps:
     - name: Checkout repository

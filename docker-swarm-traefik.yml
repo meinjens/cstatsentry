@@ -58,7 +58,7 @@ services:
           memory: 64M
 
   api:
-    image: cstatsentry/api:latest
+    image: cstatsentry/backend-service:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
@@ -139,7 +139,7 @@ services:
         - traefik.http.routers.cstatsentry-frontend.middlewares=cstatsentry-frontend-compress,cstatsentry-frontend-headers
 
   celery-worker:
-    image: cstatsentry/api:latest
+    image: cstatsentry/backend-service:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
@@ -166,7 +166,7 @@ services:
           memory: 256M
 
   celery-beat:
-    image: cstatsentry/api:latest
+    image: cstatsentry/backend-service:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
@@ -196,7 +196,7 @@ services:
           memory: 128M
 
   celery-flower:
-    image: cstatsentry/api:latest
+    image: cstatsentry/backend-service:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0

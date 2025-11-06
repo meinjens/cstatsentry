@@ -40,9 +40,9 @@ services:
     deploy:
       replicas: 1
 
-  # Database Migration Service (runs once before API starts)
+  # Database Migration Service (runs once before Backend Service starts)
   migration:
-    image: cstatsentry/api:latest
+    image: cstatsentry/backend-service:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
     depends_on:
@@ -54,7 +54,7 @@ services:
         condition: none  # Only run once, don't restart
 
   api:
-    image: cstatsentry/api:latest
+    image: cstatsentry/backend-service:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
@@ -81,7 +81,7 @@ services:
         condition: on-failure
 
   celery-worker:
-    image: cstatsentry/api:latest
+    image: cstatsentry/backend-service:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
@@ -98,7 +98,7 @@ services:
         condition: on-failure
 
   celery-beat:
-    image: cstatsentry/api:latest
+    image: cstatsentry/backend-service:latest
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-statsentry}:${POSTGRES_PASSWORD:-statsentry_prod_password}@db:5432/${POSTGRES_DB:-statsentry}
       - REDIS_URL=redis://redis:6379/0
