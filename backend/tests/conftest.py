@@ -297,3 +297,48 @@ def sample_match_data():
         "score_team1": 16,
         "score_team2": 14
     }
+
+
+@pytest.fixture(autouse=True)
+def mock_celery_tasks(monkeypatch):
+    """Mock Celery tasks to avoid Redis dependency in tests"""
+    import uuid
+    from unittest.mock import MagicMock
+
+    # Create a mock task result
+    class MockAsyncResult:
+        def __init__(self, task_id):
+            self.id = task_id
+            self.status = "SUCCESS"
+
+        def ready(self):
+            return True
+
+        @property
+        def result(self):
+            return {"status": "completed", "matches_found": 0, "new_matches": 0}
+
+    # Mock the task's delay method
+    def mock_delay(*args, **kwargs):
+        task_id = str(uuid.uuid4())
+        return MockAsyncResult(task_id)
+
+    # Mock the celery app
+    mock_celery_app = MagicMock()
+    mock_celery_app.AsyncResult = MockAsyncResult
+
+    try:
+        # Try to mock the actual task
+        from app.tasks import match_sync
+        monkeypatch.setattr(match_sync.fetch_user_matches, "delay", mock_delay)
+    except (ImportError, AttributeError):
+        # If task doesn't exist yet, that's ok
+        pass
+
+    try:
+        # Mock celery app for status checks
+        from app.core import celery as celery_module
+        monkeypatch.setattr(celery_module, "celery_app", mock_celery_app)
+    except (ImportError, AttributeError):
+        # If celery module doesn't exist yet, that's ok
+        pass
