@@ -1,0 +1,47 @@
+{
+  "name": "replay-hunter",
+  "version": "1.0.0",
+  "description": "🎯 Hunt Down CS2 Demos - Backend API for automatic demo file downloads via Steam Game Coordinator",
+  "main": "src/index.js",
+  "packageManager": "pnpm@10.20.0",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meinjens/replay-hunter.git"
+  },
+  "keywords": ["cs2", "csgo", "demo", "download", "api", "backend", "rest-api", "replay", "steam", "game-coordinator"],
+  "author": "meinjens",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/meinjens/replay-hunter/issues"
+  },
+  "homepage": "https://github.com/meinjens/replay-hunter#readme",
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=10"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "steam-user": "^5.0.0",
+    "globaloffensive": "^3.0.0",
+    "bull": "^4.12.0",
+    "redis": "^4.6.0",
+    "@prisma/client": "^5.9.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.4.0",
+    "winston": "^3.11.0",
+    "cors": "^2.8.5",
+    "express-async-errors": "^3.1.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0",
+    "prisma": "^5.9.0"
+  }
+}
