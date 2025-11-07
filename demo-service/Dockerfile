@@ -1,6 +1,9 @@
 # Build stage
 FROM node:24-alpine AS builder
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 # Enable corepack for pnpm
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
@@ -19,6 +22,9 @@ RUN pnpm prisma:generate
 # Production stage
 FROM node:24-alpine
 
+# Install OpenSSL for Prisma runtime
+RUN apk add --no-cache openssl
+
 # Enable corepack for pnpm
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
@@ -30,13 +36,15 @@ COPY package.json pnpm-lock.yaml ./
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
 
-# Copy generated Prisma Client from builder
-COPY --from=builder /app/node_modules/.pnpm/@prisma+client* /app/node_modules/.pnpm/
+# Copy Prisma schema
+COPY prisma ./prisma
+
+# Copy entire .pnpm directory with Prisma Client
+COPY --from=builder /app/node_modules/.pnpm /app/node_modules/.pnpm
 COPY --from=builder /app/node_modules/@prisma /app/node_modules/@prisma
 
 # Copy source code
 COPY src ./src
-COPY prisma ./prisma
 
 # Create demos directory
 RUN mkdir -p /app/demos
