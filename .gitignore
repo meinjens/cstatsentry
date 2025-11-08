@@ -64,11 +64,6 @@ yarn-error.log*
 .pnpm-debug.log*
 .pnpm-store/
 
-# Package manager artifacts
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
 # Demo Service
 demo-service/demos/
 demo-service/logs/
