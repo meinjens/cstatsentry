@@ -1,6 +1,6 @@
 fastapi==0.121.0
 uvicorn[standard]==0.24.0
-sqlalchemy==2.0.23
+sqlalchemy==2.0.44
 alembic==1.16.5
 # Use psycopg2 instead of psycopg2-binary on macOS
 psycopg2==2.9.10
