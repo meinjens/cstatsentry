@@ -64,7 +64,7 @@ rsa==4.9.1
 ruamel.yaml==0.18.15
 ruamel.yaml.clib==0.2.14
 safety==3.6.2
-safety-schemas==0.0.16
+safety-schemas==0.0.17
 setuptools==80.9.0
 shellingham==1.5.4
 six==1.17.0
