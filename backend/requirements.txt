@@ -18,7 +18,6 @@ click-repl==0.3.0
 coverage==7.10.6
 cryptography==46.0.3
 dparse==0.6.4
-ecdsa==0.19.1
 fastapi==0.121.0
 filelock==3.20.1
 h11==0.16.0
@@ -53,7 +52,7 @@ pytest-asyncio==1.2.0
 pytest-cov==7.0.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
-python-jose==3.5.0
+python-jose[cryptography]==3.5.0
 python-multipart==0.0.20
 PyYAML==6.0.3
 redis==6.4.0

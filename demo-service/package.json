@@ -15,7 +15,18 @@
     "type": "git",
     "url": "git+https://github.com/meinjens/replay-hunter.git"
   },
-  "keywords": ["cs2", "csgo", "demo", "download", "api", "backend", "rest-api", "replay", "steam", "game-coordinator"],
+  "keywords": [
+    "cs2",
+    "csgo",
+    "demo",
+    "download",
+    "api",
+    "backend",
+    "rest-api",
+    "replay",
+    "steam",
+    "game-coordinator"
+  ],
   "author": "meinjens",
   "license": "MIT",
   "bugs": {
@@ -27,18 +38,18 @@
     "pnpm": ">=10"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "steam-user": "^5.0.0",
-    "globaloffensive": "^3.0.0",
-    "bull": "^4.12.0",
-    "redis": "^4.6.0",
     "@prisma/client": "^5.9.0",
     "axios": "^1.6.0",
-    "dotenv": "^16.4.0",
-    "winston": "^3.11.0",
+    "bull": "^4.12.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^5.2.1",
     "express-async-errors": "^3.1.1",
-    "uuid": "^9.0.0"
+    "globaloffensive": "^3.0.0",
+    "redis": "^4.6.0",
+    "steam-user": "^5.0.0",
+    "uuid": "^9.0.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.0",
