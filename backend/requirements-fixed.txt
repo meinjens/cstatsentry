@@ -5,7 +5,7 @@ alembic==1.16.5
 psycopg2-binary==2.9.11
 redis==7.1.0
 celery==5.5.3
-pydantic==2.11.9
+pydantic==2.12.5
 pydantic-settings==2.11.0
 python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
