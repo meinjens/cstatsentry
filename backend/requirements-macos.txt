@@ -4,14 +4,14 @@ sqlalchemy==2.0.44
 alembic==1.16.5
 # Use psycopg2 instead of psycopg2-binary on macOS
 psycopg2==2.9.10
-redis==6.4.0
+redis==7.1.0
 celery==5.5.3
-pydantic==2.11.9
+pydantic==2.12.5
 pydantic-settings==2.11.0
 python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.20
+python-multipart==0.0.22
 httpx==0.25.2
-websockets==15.0.1
 pytest==9.0.2
+websockets==16.0
 pytest-asyncio==0.21.1
