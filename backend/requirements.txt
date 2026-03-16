@@ -81,6 +81,6 @@ urllib3==2.6.3
 uvicorn==0.38.0
 uvloop==0.21.0
 vine==5.1.0
-watchfiles==1.1.0
+watchfiles==1.1.1
 wcwidth==0.2.14
 websockets==16.0
