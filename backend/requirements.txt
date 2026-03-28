@@ -6,7 +6,7 @@ anyio==4.11.0
 Authlib==1.6.9
 bcrypt==5.0.0
 billiard==4.2.2
-celery==5.5.3
+celery==5.6.3
 certifi==2026.1.4
 flower==2.0.1
 cffi==2.0.0
