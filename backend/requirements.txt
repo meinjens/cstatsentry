@@ -34,14 +34,14 @@ markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 marshmallow==4.2.3
 mdurl==0.1.2
-nltk==3.9.3
+nltk==3.9.4
 packaging==25.0
 passlib==1.7.4
 pluggy==1.6.0
 prompt_toolkit==3.0.52
 psutil==7.1.0
 psycopg2-binary==2.9.11
-pyasn1==0.6.2
+pyasn1==0.6.3
 pycparser==2.23
 pydantic==2.12.5
 pydantic-settings==2.11.0
