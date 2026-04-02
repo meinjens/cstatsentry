@@ -12,6 +12,6 @@ python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.22
 httpx==0.25.2
+pytest==9.0.2
 websockets==16.0
-pytest==8.4.2
 pytest-asyncio==0.21.1
