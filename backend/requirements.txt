@@ -34,7 +34,7 @@ markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 marshmallow==4.2.3
 mdurl==0.1.2
-nltk==3.9.3
+nltk==3.9.4
 packaging==25.0
 passlib==1.7.4
 pluggy==1.6.0
